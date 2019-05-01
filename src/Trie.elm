@@ -132,6 +132,15 @@ matches _ _ =
     Debug.todo "matches"
 
 
+subtrie : String -> Trie a -> Maybe (Trie a)
+subtrie _ _ =
+    Debug.todo "subtrie"
 
+
+
+-- Ideas
 -- expandIgnoreCase : String -> Trie a -> List String
 -- matchesIgnoreCase : String -> Trie a -> Bool
+-- match : (List Char -> Char -> a -> Bool) -> Trie a -> Bool
+-- match _ _ =
+--     Debug.todo "map"
