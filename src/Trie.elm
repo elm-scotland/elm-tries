@@ -1,13 +1,16 @@
 module Trie exposing (Trie(..))
 
+import Dict exposing (Dict)
+
 
 type Trie a
-    = Trie
+    = Empty
+    | Node Int (Maybe a) (Dict String (Trie a))
 
 
 empty : Trie a
 empty =
-    Trie
+    Empty
 
 
 singleton : String -> a -> Trie a
