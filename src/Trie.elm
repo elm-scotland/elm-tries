@@ -4,23 +4,51 @@ import Dict exposing (Dict)
 
 
 type Trie a
-    = Empty
-    | Node Int (Maybe a) (Dict String (Trie a))
+    = Trie (Maybe a) (Dict Char (Trie a))
 
 
 empty : Trie a
 empty =
-    Empty
+    Trie Nothing Dict.empty
 
 
 singleton : String -> a -> Trie a
-singleton _ _ =
-    Debug.todo "singleton"
+singleton key val =
+    let
+        maybeUncons =
+            String.uncons key
+    in
+    case maybeUncons of
+        Nothing ->
+            Trie (Just val) Dict.empty
+
+        Just ( head, tail ) ->
+            Trie Nothing (Dict.singleton head (singleton tail val))
 
 
 insert : String -> a -> Trie a -> Trie a
-insert _ _ _ =
-    Debug.todo "insert"
+insert key val trie =
+    let
+        maybeUncons =
+            String.uncons key
+    in
+    case ( maybeUncons, trie ) of
+        ( Nothing, Trie _ rem ) ->
+            Trie (Just val) rem
+
+        ( Just ( head, tail ), Trie maybeSomeVal rem ) ->
+            Trie maybeSomeVal
+                (Dict.update head
+                    (\maybeTrie ->
+                        case maybeTrie of
+                            Nothing ->
+                                singleton tail val |> Just
+
+                            Just existingTrie ->
+                                insert tail val existingTrie |> Just
+                    )
+                    rem
+                )
 
 
 update : String -> (Maybe a -> Maybe a) -> Trie a -> Trie a
@@ -34,8 +62,13 @@ remove _ _ =
 
 
 isEmpty : Trie a -> Bool
-isEmpty _ =
-    Debug.todo "isEmpty"
+isEmpty trie =
+    case trie of
+        Trie Nothing dict ->
+            Dict.isEmpty dict
+
+        _ ->
+            False
 
 
 member : String -> Trie a -> Bool
@@ -44,12 +77,31 @@ member _ _ =
 
 
 get : String -> Trie a -> Maybe a
-get _ _ =
-    Debug.todo "get"
+get key trie =
+    let
+        maybeUncons =
+            String.uncons key
+    in
+    case ( maybeUncons, trie ) of
+        ( Nothing, Trie maybeSomeVal _ ) ->
+            maybeSomeVal
+
+        ( Just ( head, tail ), Trie _ rem ) ->
+            let
+                maybeTrie =
+                    Dict.get head rem
+            in
+            case maybeTrie of
+                Nothing ->
+                    Nothing
+
+                Just subTrie ->
+                    get tail subTrie
 
 
 size : Trie a -> Int
 size _ =
+    -- cache this on inserts
     Debug.todo "size"
 
 
