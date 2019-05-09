@@ -1,4 +1,4 @@
-module Trie exposing (Trie(..))
+module Trie exposing (Trie(..), diff, empty, expand, filter, foldl, foldr, fromList, get, insert, intersect, isEmpty, keys, map, matches, member, merge, partition, remove, singleton, size, subtrie, toList, union, update, values)
 
 import Dict exposing (Dict)
 
