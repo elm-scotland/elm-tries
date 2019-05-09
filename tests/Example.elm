@@ -1,4 +1,4 @@
-module Example exposing (singleton)
+module Example exposing (emptyContainsNoVal, singletonContainsVal)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
@@ -6,10 +6,19 @@ import Test exposing (..)
 import Trie
 
 
-singleton : Test
-singleton =
-    describe "singleton"
+emptyContainsNoVal : Test
+emptyContainsNoVal =
+    describe "emptyContainsNoVal"
         [ fuzz string "creates singleton tries" <|
             \val ->
-                Trie.singleton val () |> Trie.get val |> Expect.equal (Just ())
+                Trie.empty |> Trie.get val |> Expect.equal Nothing
+        ]
+
+
+singletonContainsVal : Test
+singletonContainsVal =
+    describe "singletonContainsVal"
+        [ fuzz string "creates singleton tries" <|
+            \val ->
+                Trie.singleton val val |> Trie.get val |> Expect.equal (Just val)
         ]
