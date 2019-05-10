@@ -132,8 +132,29 @@ updateInner key fn trie =
 
 
 remove : String -> Trie a -> Trie a
-remove _ trie =
-    trie
+remove key trie =
+    removeInner (String.toList key) trie
+
+
+removeInner : List Char -> Trie a -> Trie a
+removeInner key trie =
+    case ( key, trie ) of
+        ( [], Trie _ rem ) ->
+            Trie Nothing rem
+
+        ( head :: tail, Trie maybeSomeVal rem ) ->
+            Trie maybeSomeVal
+                (Dict.update head
+                    (\maybeTrie ->
+                        case maybeTrie of
+                            Nothing ->
+                                Nothing
+
+                            Just existingTrie ->
+                                removeInner tail existingTrie |> Just
+                    )
+                    rem
+                )
 
 
 isEmpty : Trie a -> Bool
