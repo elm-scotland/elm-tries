@@ -101,8 +101,8 @@ insertInner key val trie =
 
 
 update : String -> (Maybe a -> Maybe a) -> Trie a -> Trie a
-update _ _ _ =
-    Debug.todo "update"
+update _ _ trie =
+    trie
 
 
 remove : String -> Trie a -> Trie a
