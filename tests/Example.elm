@@ -3,6 +3,7 @@ module Example exposing
     , emptyInsertStringContainsVal
     , listOfNumsDoubledAllEven
     , listOfValsContainsAllVals
+    , listOfValsRemovedContainsNone
     , listOfValsReportsSizeOk
     , singletonContainsVal
     , singletonEmptyStringContainsVal
@@ -125,4 +126,24 @@ listOfNumsDoubledAllEven =
                         List.foldl (\val trie -> Trie.insert (String.fromInt val) val trie) Trie.empty vals
                             |> doubleOdd vals
                             |> Expect.all (List.map (\val trie -> Trie.get (String.fromInt val) trie |> expectJustEven) vals)
+        ]
+
+
+listOfValsRemovedContainsNone : Test
+listOfValsRemovedContainsNone =
+    let
+        removeAll keys trie =
+            List.foldl (\key accum -> Trie.remove key accum) trie keys
+    in
+    describe "listOfValsRemovedContainsNone"
+        [ fuzz (list string) "Creates a trie with a list of vals, removes all, and checks none are present." <|
+            \possiblyEmptyVals ->
+                case possiblyEmptyVals of
+                    [] ->
+                        Expect.equal [] []
+
+                    vals ->
+                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                            |> removeAll vals
+                            |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal Nothing) vals)
         ]

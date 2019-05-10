@@ -132,8 +132,8 @@ updateInner key fn trie =
 
 
 remove : String -> Trie a -> Trie a
-remove _ _ =
-    Debug.todo "remove"
+remove _ trie =
+    trie
 
 
 isEmpty : Trie a -> Bool
