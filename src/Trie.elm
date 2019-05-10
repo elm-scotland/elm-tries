@@ -103,9 +103,13 @@ getInner key trie =
 
 
 size : Trie a -> Int
-size _ =
-    -- cache this on inserts
-    Debug.todo "size"
+size (Trie maybeVal dict) =
+    case maybeVal of
+        Nothing ->
+            Dict.foldl (\k v accum -> accum + size v) 0 dict
+
+        Just _ ->
+            Dict.foldl (\k v accum -> accum + size v) 1 dict
 
 
 keys : Trie a -> List String
