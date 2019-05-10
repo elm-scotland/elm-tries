@@ -65,12 +65,7 @@ remove _ _ =
 
 isEmpty : Trie a -> Bool
 isEmpty trie =
-    case trie of
-        Trie Nothing dict ->
-            Dict.isEmpty dict
-
-        _ ->
-            False
+    Debug.todo "isEmpty"
 
 
 member : String -> Trie a -> Bool
