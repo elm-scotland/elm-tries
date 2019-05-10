@@ -14,38 +14,40 @@ empty =
 
 singleton : String -> a -> Trie a
 singleton key val =
-    let
-        maybeUncons =
-            String.uncons key
-    in
-    case maybeUncons of
-        Nothing ->
+    singletonInner (String.toList key) val
+
+
+singletonInner : List Char -> a -> Trie a
+singletonInner key val =
+    case key of
+        [] ->
             Trie (Just val) Dict.empty
 
-        Just ( head, tail ) ->
-            Trie Nothing (Dict.singleton head (singleton tail val))
+        head :: tail ->
+            Trie Nothing (Dict.singleton head (singletonInner tail val))
 
 
 insert : String -> a -> Trie a -> Trie a
 insert key val trie =
-    let
-        maybeUncons =
-            String.uncons key
-    in
-    case ( maybeUncons, trie ) of
-        ( Nothing, Trie _ rem ) ->
+    insertInner (String.toList key) val trie
+
+
+insertInner : List Char -> a -> Trie a -> Trie a
+insertInner key val trie =
+    case ( key, trie ) of
+        ( [], Trie _ rem ) ->
             Trie (Just val) rem
 
-        ( Just ( head, tail ), Trie maybeSomeVal rem ) ->
+        ( head :: tail, Trie maybeSomeVal rem ) ->
             Trie maybeSomeVal
                 (Dict.update head
                     (\maybeTrie ->
                         case maybeTrie of
                             Nothing ->
-                                singleton tail val |> Just
+                                singletonInner tail val |> Just
 
                             Just existingTrie ->
-                                insert tail val existingTrie |> Just
+                                insertInner tail val existingTrie |> Just
                     )
                     rem
                 )
@@ -78,15 +80,16 @@ member _ _ =
 
 get : String -> Trie a -> Maybe a
 get key trie =
-    let
-        maybeUncons =
-            String.uncons key
-    in
-    case ( maybeUncons, trie ) of
-        ( Nothing, Trie maybeSomeVal _ ) ->
+    getInner (String.toList key) trie
+
+
+getInner : List Char -> Trie a -> Maybe a
+getInner key trie =
+    case ( key, trie ) of
+        ( [], Trie maybeSomeVal _ ) ->
             maybeSomeVal
 
-        ( Just ( head, tail ), Trie _ rem ) ->
+        ( head :: tail, Trie _ rem ) ->
             let
                 maybeTrie =
                     Dict.get head rem
@@ -96,7 +99,7 @@ get key trie =
                     Nothing
 
                 Just subTrie ->
-                    get tail subTrie
+                    getInner tail subTrie
 
 
 size : Trie a -> Int
