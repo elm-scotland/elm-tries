@@ -101,8 +101,34 @@ insertInner key val trie =
 
 
 update : String -> (Maybe a -> Maybe a) -> Trie a -> Trie a
-update _ _ trie =
-    trie
+update key fn trie =
+    updateInner (String.toList key) fn trie
+
+
+updateInner : List Char -> (Maybe a -> Maybe a) -> Trie a -> Trie a
+updateInner key fn trie =
+    case ( key, trie ) of
+        ( [], Trie maybeVal rem ) ->
+            Trie (fn maybeVal) rem
+
+        ( head :: tail, Trie maybeSomeVal rem ) ->
+            Trie maybeSomeVal
+                (Dict.update head
+                    (\maybeTrie ->
+                        case maybeTrie of
+                            Nothing ->
+                                case fn Nothing of
+                                    Nothing ->
+                                        Just empty
+
+                                    Just fnVal ->
+                                        singletonInner tail fnVal |> Just
+
+                            Just existingTrie ->
+                                updateInner tail fn existingTrie |> Just
+                    )
+                    rem
+                )
 
 
 remove : String -> Trie a -> Trie a
