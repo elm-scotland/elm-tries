@@ -1,4 +1,4 @@
-module Example exposing (emptyContainsNoVal, listOfValsContainsAllVals, singletonContainsVal, singletonEmptyStringContainsVal)
+module Example exposing (emptyContainsNoVal, emptyInsertStringContainsVal, listOfValsContainsAllVals, singletonContainsVal, singletonEmptyStringContainsVal)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
@@ -34,6 +34,15 @@ singletonEmptyStringContainsVal =
         ]
 
 
+emptyInsertStringContainsVal : Test
+emptyInsertStringContainsVal =
+    describe "emptyInsertStringContainsVal"
+        [ fuzz string "Creates tries by inserting to empty." <|
+            \val ->
+                Trie.empty |> Trie.insert val val |> Trie.get val |> Expect.equal (Just val)
+        ]
+
+
 listOfValsContainsAllVals : Test
 listOfValsContainsAllVals =
     describe "listOfValsContainsAllVals"
@@ -44,6 +53,6 @@ listOfValsContainsAllVals =
                         Expect.equal [] []
 
                     vals ->
-                        List.foldl (\val trie -> trie) Trie.empty vals
+                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
                             |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal (Just val)) vals)
         ]
