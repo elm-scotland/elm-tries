@@ -1,4 +1,51 @@
-module Trie exposing (Trie(..), diff, empty, expand, filter, foldl, foldr, fromList, get, insert, intersect, isEmpty, keys, map, matches, member, merge, partition, remove, singleton, size, subtrie, toList, union, update, values)
+module Trie exposing
+    ( Trie(..)
+    , empty, singleton, insert, update, remove
+    , isEmpty, member, get, size
+    , keys, values, toList, fromList
+    , map, foldl, foldr, filter, partition
+    , union, intersect, diff, merge
+    , expand, matches, subtrie
+    )
+
+{-| A trie mapping unique strings to values.
+
+
+# Data structure
+
+@docs Trie
+
+
+# Build
+
+@docs empty, singleton, insert, update, remove
+
+
+# Query
+
+@docs isEmpty, member, get, size
+
+
+# Lists
+
+@docs keys, values, toList, fromList
+
+
+# Transform
+
+@docs map, foldl, foldr, filter, partition
+
+
+# Combine
+
+@docs union, intersect, diff, merge
+
+
+# Trie specific string matching operations
+
+@docs expand, matches, subtrie
+
+-}
 
 import Dict exposing (Dict)
 
