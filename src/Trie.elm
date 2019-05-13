@@ -242,8 +242,8 @@ foldr _ _ _ =
 
 
 walkr : (List Char -> Maybe a -> b -> b) -> b -> Trie a -> b
-walkr _ _ _ =
-    Debug.todo "walkr"
+walkr fn accum (Trie maybeValue dict) =
+    Dict.foldr (\char -> fn [] maybeValue accum) [] dict
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
