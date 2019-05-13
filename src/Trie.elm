@@ -202,23 +202,23 @@ size (Trie maybeVal dict) =
 
 
 keys : Trie a -> List String
-keys _ =
-    Debug.todo "keys"
+keys trie =
+    foldr (\key value keyList -> key :: keyList) [] trie
 
 
 values : Trie a -> List a
-values _ =
-    Debug.todo "values"
+values trie =
+    foldr (\key value valueList -> value :: valueList) [] trie
 
 
 toList : Trie a -> List ( String, a )
-toList _ =
-    Debug.todo "toList"
+toList trie =
+    foldr (\key value list -> ( key, value ) :: list) [] trie
 
 
 fromList : List ( String, a ) -> Trie a
-fromList _ =
-    Debug.todo "fromList"
+fromList assocs =
+    List.foldl (\( key, value ) dict -> insert key value dict) empty assocs
 
 
 map : (String -> a -> b) -> Trie a -> Trie b
