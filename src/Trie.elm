@@ -231,9 +231,19 @@ foldl _ _ _ =
     Debug.todo "foldl"
 
 
+walkl : (List Char -> Maybe a -> b -> b) -> b -> Trie a -> b
+walkl _ _ _ =
+    Debug.todo "walkl"
+
+
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
 foldr _ _ _ =
     Debug.todo "foldr"
+
+
+walkr : (List Char -> Maybe a -> b -> b) -> b -> Trie a -> b
+walkr _ _ _ =
+    Debug.todo "walkr"
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
