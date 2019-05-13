@@ -3,6 +3,8 @@ module Example exposing
     , emptyInsertStringContainsVal
     , listOfNumsDoubledAllEven
     , listOfValsContainsAllVals
+    , listOfValsListsAllKeys
+    , listOfValsListsAllValues
     , listOfValsRemovedContainsNone
     , listOfValsReportsSizeOk
     , singletonContainsVal
@@ -146,4 +148,36 @@ listOfValsRemovedContainsNone =
                         List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
                             |> removeAll vals
                             |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal Nothing) vals)
+        ]
+
+
+listOfValsListsAllKeys : Test
+listOfValsListsAllKeys =
+    describe "listOfValsListsAllKeys"
+        [ fuzz (list string) "Creates a trie with a list of vals and ensures lists all of them as keys." <|
+            \possiblyEmptyVals ->
+                case possiblyEmptyVals of
+                    [] ->
+                        Expect.equal [] []
+
+                    vals ->
+                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                            |> Trie.keys
+                            |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
+        ]
+
+
+listOfValsListsAllValues : Test
+listOfValsListsAllValues =
+    describe "listOfValsListsAllValues"
+        [ fuzz (list string) "Creates a trie with a list of vals and ensures lists all of them as values." <|
+            \possiblyEmptyVals ->
+                case possiblyEmptyVals of
+                    [] ->
+                        Expect.equal [] []
+
+                    vals ->
+                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                            |> Trie.values
+                            |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
         ]
