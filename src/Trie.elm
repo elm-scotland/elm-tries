@@ -237,28 +237,45 @@ foldr _ _ _ =
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
-filter _ _ =
-    Debug.todo "filter"
+filter isGood trie =
+    foldl
+        (\k v d ->
+            if isGood k v then
+                insert k v d
+
+            else
+                d
+        )
+        empty
+        trie
 
 
 partition : (String -> a -> Bool) -> Trie a -> ( Trie a, Trie a )
-partition _ _ =
-    Debug.todo "partition"
+partition isGood trie =
+    let
+        add key value ( t1, t2 ) =
+            if isGood key value then
+                ( insert key value t1, t2 )
+
+            else
+                ( t1, insert key value t2 )
+    in
+    foldl add ( empty, empty ) trie
 
 
 union : Trie a -> Trie a -> Trie a
-union _ _ =
-    Debug.todo "union"
+union t1 t2 =
+    foldl insert t2 t1
 
 
 intersect : Trie a -> Trie a -> Trie a
-intersect _ _ =
-    Debug.todo "intersect"
+intersect t1 t2 =
+    filter (\k _ -> member k t2) t1
 
 
 diff : Trie a -> Trie b -> Trie a
-diff _ _ =
-    Debug.todo "diff"
+diff t1 t2 =
+    foldl (\k v t -> remove k t) t1 t2
 
 
 merge :
