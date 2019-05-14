@@ -242,12 +242,12 @@ foldr _ _ _ =
     Debug.todo "foldr"
 
 
-walkr : (List Char -> Maybe a -> b -> b) -> b -> Trie a -> b
+walkr : (List Char -> a -> b -> b) -> b -> Trie a -> b
 walkr fn accum trie =
     let
         step : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
         step ( keyAccum, Trie maybeValue dict ) =
-            Dict.foldl
+            Dict.foldr
                 (\k innerTrie stack ->
                     ( ( k :: keyAccum, innerTrie )
                     , case maybeValue of
@@ -266,14 +266,19 @@ walkr fn accum trie =
         |> foldGoals fn accum
 
 
-foldGoals : (List Char -> Maybe a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
+foldGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
 foldGoals fn accum search =
     case search of
         Search.Complete ->
             accum
 
         Search.Goal ( key, Trie maybeValue _ ) searchFn ->
-            foldGoals fn (fn key maybeValue accum) (searchFn ())
+            case maybeValue of
+                Nothing ->
+                    foldGoals fn accum (searchFn ())
+
+                Just value ->
+                    foldGoals fn (fn key value accum) (searchFn ())
 
         Search.Ongoing _ searchFn ->
             foldGoals fn accum (searchFn ())
