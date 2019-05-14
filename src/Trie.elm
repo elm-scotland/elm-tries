@@ -277,8 +277,7 @@ step ( keyAccum, Trie _ dict ) =
 
 foldGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
 foldGoals fn accum search =
-    --case Search.nextGoal search of
-    case search of
+    case Search.nextGoal search of
         Search.Complete ->
             accum
 
