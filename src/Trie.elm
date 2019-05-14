@@ -238,8 +238,8 @@ walkl _ _ _ =
 
 
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
-foldr _ _ _ =
-    Debug.todo "foldr"
+foldr fn accum trie =
+    walkr (\chars -> fn <| String.fromList chars) accum trie
 
 
 walkr : (List Char -> a -> b -> b) -> b -> Trie a -> b
