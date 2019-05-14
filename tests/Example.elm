@@ -18,6 +18,23 @@ import Test exposing (..)
 import Trie
 
 
+
+-- Fuzzers for better trie testing.
+
+
+wordList =
+    Fuzz.frequency
+        [ ( 4, Fuzz.constant "a" )
+        , ( 3, Fuzz.constant "b" )
+        , ( 2, Fuzz.constant "c" )
+        , ( 1, Fuzz.constant "d" )
+        , ( 1, Fuzz.constant "" )
+        ]
+        |> Fuzz.list
+        |> Fuzz.map (String.concat >> String.left 10)
+        |> Fuzz.list
+
+
 emptyContainsNoVal : Test
 emptyContainsNoVal =
     describe "emptyContainsNoVal"
@@ -154,9 +171,9 @@ listOfValsRemovedContainsNone =
 listOfValsListsAllKeys : Test
 listOfValsListsAllKeys =
     describe "listOfValsListsAllKeys"
-        [ fuzz (list string) "Creates a trie with a list of vals and ensures lists all of them as keys." <|
+        [ fuzz wordList "Creates a trie with a list of vals and ensures lists all of them as keys." <|
             \possiblyEmptyVals ->
-                case possiblyEmptyVals of
+                case Debug.log "word list" possiblyEmptyVals of
                     [] ->
                         Expect.equal [] []
 
