@@ -243,27 +243,36 @@ foldr fn accum trie =
 
 
 walkr : (List Char -> a -> b -> b) -> b -> Trie a -> b
-walkr fn accum trie =
-    let
-        step : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
-        step ( keyAccum, Trie maybeValue dict ) =
-            Dict.foldr
-                (\k innerTrie stack ->
-                    ( ( k :: keyAccum, innerTrie )
-                    , case maybeValue of
-                        Nothing ->
-                            False
+walkr fn accum ((Trie maybeValue _) as trie) =
+    Search.depthFirst { step = step, cost = \_ -> 1.0 }
+        [ ( ( [], trie )
+          , case maybeValue of
+                Nothing ->
+                    False
 
-                        Just _ ->
-                            True
-                    )
-                        :: stack
-                )
-                []
-                dict
-    in
-    Search.depthFirst { step = step, cost = \_ -> 1.0 } [ ( [], trie ) ]
+                Just _ ->
+                    True
+          )
+        ]
         |> foldGoals fn accum
+
+
+step : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+step ( keyAccum, Trie maybeValue dict ) =
+    Dict.foldr
+        (\k innerTrie stack ->
+            ( ( k :: keyAccum, innerTrie )
+            , case maybeValue of
+                Nothing ->
+                    False
+
+                Just _ ->
+                    True
+            )
+                :: stack
+        )
+        []
+        dict
 
 
 foldGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
