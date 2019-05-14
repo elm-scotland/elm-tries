@@ -258,9 +258,9 @@ walkr fn accum ((Trie maybeValue _) as trie) =
 
 
 step : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
-step ( keyAccum, Trie maybeValue dict ) =
+step ( keyAccum, Trie _ dict ) =
     Dict.foldr
-        (\k innerTrie stack ->
+        (\k ((Trie maybeValue _) as innerTrie) stack ->
             ( ( k :: keyAccum, innerTrie )
             , case maybeValue of
                 Nothing ->
@@ -277,6 +277,7 @@ step ( keyAccum, Trie maybeValue dict ) =
 
 foldGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
 foldGoals fn accum search =
+    --case Search.nextGoal search of
     case search of
         Search.Complete ->
             accum
