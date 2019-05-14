@@ -48,6 +48,7 @@ module Trie exposing
 -}
 
 import Dict exposing (Dict)
+import Search
 
 
 type Trie a
@@ -242,8 +243,40 @@ foldr _ _ _ =
 
 
 walkr : (List Char -> Maybe a -> b -> b) -> b -> Trie a -> b
-walkr fn accum ((Trie maybeValue dict) as trie) =
-    Debug.todo "walkr"
+walkr fn accum trie =
+    let
+        step : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+        step ( keyAccum, Trie maybeValue dict ) =
+            Dict.foldl
+                (\k innerTrie stack ->
+                    ( ( k :: keyAccum, innerTrie )
+                    , case maybeValue of
+                        Nothing ->
+                            False
+
+                        Just _ ->
+                            True
+                    )
+                        :: stack
+                )
+                []
+                dict
+    in
+    Search.depthFirst { step = step, cost = \_ -> 1.0 } [ ( [], trie ) ]
+        |> foldGoals fn accum
+
+
+foldGoals : (List Char -> Maybe a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
+foldGoals fn accum search =
+    case search of
+        Search.Complete ->
+            accum
+
+        Search.Goal ( key, Trie maybeValue _ ) searchFn ->
+            foldGoals fn (fn key maybeValue accum) (searchFn ())
+
+        Search.Ongoing _ searchFn ->
+            foldGoals fn accum (searchFn ())
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
