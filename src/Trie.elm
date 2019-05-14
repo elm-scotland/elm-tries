@@ -239,7 +239,7 @@ walkl _ _ _ =
 
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
 foldr fn accum trie =
-    walkr (\chars -> fn <| String.fromList chars) accum trie
+    walkr (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
 
 
 walkr : (List Char -> a -> b -> b) -> b -> Trie a -> b
