@@ -22,7 +22,7 @@ import Trie
 -- Fuzzers for better trie testing.
 
 
-wordList =
+suffixString =
     Fuzz.frequency
         [ ( 4, Fuzz.constant "a" )
         , ( 3, Fuzz.constant "b" )
@@ -32,7 +32,17 @@ wordList =
         ]
         |> Fuzz.list
         |> Fuzz.map (String.concat >> String.left 10)
+
+
+longString =
+    Fuzz.frequency
+        [ ( 1, Fuzz.constant (String.repeat 100 "a") )
+        , ( 1, Fuzz.constant (String.repeat 100 "b") )
+        , ( 1, Fuzz.constant (String.repeat 100 "c") )
+        , ( 1, Fuzz.constant (String.repeat 100 "d") )
+        ]
         |> Fuzz.list
+        |> Fuzz.map String.concat
 
 
 emptyContainsNoVal : Test
@@ -87,8 +97,8 @@ listOfValsContainsAllVals =
         [ fuzz (list string)
             "Creates a trie with a list of vals and ensures it contains all of them (list string)."
             test
-        , fuzz wordList
-            "Creates a trie with a list of vals and ensures it contains all of them (wordList)."
+        , fuzz (list suffixString)
+            "Creates a trie with a list of vals and ensures it contains all of them (list suffixString)."
             test
         ]
 
@@ -108,7 +118,10 @@ listOfValsReportsSizeOk =
     in
     describe "listOfValsReportsSizeOk"
         [ fuzz (list string)
-            "Creates a trie with a list of vals and checks it has the correct size."
+            "Creates a trie with a list of vals and checks it has the correct size (list string)."
+            test
+        , fuzz (list longString)
+            "Creates a trie with a list of vals and checks it has the correct size (list longString)."
             test
         ]
 
@@ -182,8 +195,8 @@ listOfValsRemovedContainsNone =
         [ fuzz (list string)
             "Creates a trie with a list of vals, removes all, and checks none are present (list string)."
             test
-        , fuzz wordList
-            "Creates a trie with a list of vals, removes all, and checks none are present (wordList)."
+        , fuzz (list suffixString)
+            "Creates a trie with a list of vals, removes all, and checks none are present (list suffixString)."
             test
         ]
 
@@ -205,8 +218,8 @@ listOfValsListsAllKeys =
         [ fuzz (list string)
             "Creates a trie with a list of vals and ensures lists all of them as keys (list string)."
             test
-        , fuzz wordList
-            "Creates a trie with a list of vals and ensures lists all of them as keys (wordList)."
+        , fuzz (list suffixString)
+            "Creates a trie with a list of vals and ensures lists all of them as keys (list suffixString)."
             test
         ]
 
@@ -228,7 +241,7 @@ listOfValsListsAllValues =
         [ fuzz (list string)
             "Creates a trie with a list of vals and ensures lists all of them as values (list string)."
             test
-        , fuzz wordList
-            "Creates a trie with a list of vals and ensures lists all of them as values (wordList)."
+        , fuzz (list suffixString)
+            "Creates a trie with a list of vals and ensures lists all of them as values (list suffixString)."
             test
         ]
