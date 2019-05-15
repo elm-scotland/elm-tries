@@ -223,8 +223,18 @@ fromList assocs =
 
 
 map : (String -> a -> b) -> Trie a -> Trie b
-map _ _ =
-    Debug.todo "map"
+map fn trie =
+    mapChars (\chars -> fn <| String.fromList (List.reverse chars)) [] trie
+
+
+mapChars : (List Char -> a -> b) -> List Char -> Trie a -> Trie b
+mapChars fn keyAccum ((Trie maybeValue dict) as trie) =
+    case maybeValue of
+        Nothing ->
+            Trie maybeValue (Dict.map (mapChars fn keyAccum) dict)
+
+        Just value ->
+            Trie (fn keyAccum value) (Dict.map (mapChars fn keyAccum) dict)
 
 
 foldl : (String -> a -> b -> b) -> b -> Trie a -> b
