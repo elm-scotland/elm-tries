@@ -160,7 +160,7 @@ removeInner key trie =
 
 isEmpty : Trie a -> Bool
 isEmpty trie =
-    Debug.todo "isEmpty"
+    size trie == 0
 
 
 member : String -> Trie a -> Bool

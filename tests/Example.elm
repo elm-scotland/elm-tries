@@ -1,6 +1,7 @@
 module Example exposing
     ( emptyContainsNoVal
     , emptyInsertStringContainsVal
+    , emptyIsEmpty
     , listOfNumsDoubledAllEven
     , listOfValsAllKeysMembers
     , listOfValsContainsAllVals
@@ -10,6 +11,7 @@ module Example exposing
     , listOfValsListsAllValues
     , listOfValsRemovedContainsNone
     , listOfValsReportsSizeOk
+    , nonEmptyIsNotEmpty
     , singletonContainsVal
     , singletonEmptyStringContainsVal
     )
@@ -51,9 +53,40 @@ longString factor =
 emptyContainsNoVal : Test
 emptyContainsNoVal =
     describe "emptyContainsNoVal"
-        [ fuzz string "Creates singleton tries." <|
+        [ fuzz string "Checks an empty trie does not get any keys." <|
             \val ->
                 Trie.empty |> Trie.get val |> Expect.equal Nothing
+        ]
+
+
+emptyIsEmpty : Test
+emptyIsEmpty =
+    describe "emptyIsEmpty"
+        [ test "Check empty trie reports isEmpty." <|
+            \() -> Trie.empty |> Trie.isEmpty |> Expect.true "not empty"
+        ]
+
+
+nonEmptyIsNotEmpty : Test
+nonEmptyIsNotEmpty =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> Trie.isEmpty
+                        |> Expect.false "empty"
+    in
+    describe "nonEmptyIsNotEmpty"
+        [ fuzz (list string)
+            "Creates a trie and checks if it is non-empty that it reports it is not empty (list string)."
+            test
+        , fuzz (list suffixString)
+            "Creates a trie and checks if it is non-empty that it reports it is not empty (list suffixString)."
+            test
         ]
 
 
