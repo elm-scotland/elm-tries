@@ -327,18 +327,43 @@ merge _ _ _ _ _ _ =
 
 
 expand : String -> Trie a -> List String
-expand _ _ =
-    Debug.todo "expand"
+expand key trie =
+    case subtrie key trie of
+        Nothing ->
+            []
+
+        Just innerTrie ->
+            foldr (\innerKey _ accum -> (key ++ innerKey) :: accum) [] innerTrie
 
 
 matches : String -> Trie a -> Bool
-matches _ _ =
-    Debug.todo "matches"
+matches key trie =
+    case subtrie key trie of
+        Nothing ->
+            False
+
+        Just (Trie maybeValue _) ->
+            isJust maybeValue
 
 
 subtrie : String -> Trie a -> Maybe (Trie a)
-subtrie _ _ =
-    Debug.todo "subtrie"
+subtrie key trie =
+    subtrieInner (String.toList key) trie
+
+
+subtrieInner : List Char -> Trie a -> Maybe (Trie a)
+subtrieInner key ((Trie maybeValue dict) as trie) =
+    case key of
+        [] ->
+            Just trie
+
+        k :: ks ->
+            case Dict.get k dict of
+                Nothing ->
+                    Nothing
+
+                Just innerTrie ->
+                    subtrieInner ks innerTrie
 
 
 
