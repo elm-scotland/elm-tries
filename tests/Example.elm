@@ -19,7 +19,7 @@ import Trie
 
 
 
--- Fuzzers for better trie testing.
+-- Fuzzers targeted at trie testing.
 
 
 suffixString =
