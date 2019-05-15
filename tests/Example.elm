@@ -180,7 +180,10 @@ listOfValsRemovedContainsNone =
     in
     describe "listOfValsRemovedContainsNone"
         [ fuzz (list string)
-            "Creates a trie with a list of vals, removes all, and checks none are present."
+            "Creates a trie with a list of vals, removes all, and checks none are present (list string)."
+            test
+        , fuzz wordList
+            "Creates a trie with a list of vals, removes all, and checks none are present (wordList)."
             test
         ]
 
@@ -200,7 +203,10 @@ listOfValsListsAllKeys =
     in
     describe "listOfValsListsAllKeys"
         [ fuzz (list string)
-            "Creates a trie with a list of vals and ensures lists all of them as keys."
+            "Creates a trie with a list of vals and ensures lists all of them as keys (list string)."
+            test
+        , fuzz wordList
+            "Creates a trie with a list of vals and ensures lists all of them as keys (wordList)."
             test
         ]
 
@@ -220,6 +226,9 @@ listOfValsListsAllValues =
     in
     describe "listOfValsListsAllValues"
         [ fuzz (list string)
-            "Creates a trie with a list of vals and ensures lists all of them as values."
+            "Creates a trie with a list of vals and ensures lists all of them as values (list string)."
+            test
+        , fuzz wordList
+            "Creates a trie with a list of vals and ensures lists all of them as values (wordList)."
             test
         ]
