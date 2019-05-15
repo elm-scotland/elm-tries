@@ -171,9 +171,9 @@ listOfValsRemovedContainsNone =
 listOfValsListsAllKeys : Test
 listOfValsListsAllKeys =
     describe "listOfValsListsAllKeys"
-        [ fuzz wordList "Creates a trie with a list of vals and ensures lists all of them as keys." <|
+        [ fuzz (list string) "Creates a trie with a list of vals and ensures lists all of them as keys." <|
             \possiblyEmptyVals ->
-                case Debug.log "word list" possiblyEmptyVals of
+                case possiblyEmptyVals of
                     [] ->
                         Expect.equal [] []
 
