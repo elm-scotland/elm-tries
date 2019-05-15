@@ -353,8 +353,27 @@ merge :
     -> Trie b
     -> result
     -> result
-merge _ _ _ _ _ _ =
-    Debug.todo "merge"
+merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
+    let
+        stepState rKey rValue ( list, result ) =
+            case list of
+                [] ->
+                    ( list, rightStep rKey rValue result )
+
+                ( lKey, lValue ) :: rest ->
+                    if lKey < rKey then
+                        stepState rKey rValue ( rest, leftStep lKey lValue result )
+
+                    else if lKey > rKey then
+                        ( list, rightStep rKey rValue result )
+
+                    else
+                        ( rest, bothStep lKey lValue rValue result )
+
+        ( leftovers, intermediateResult ) =
+            foldl stepState ( toList leftTrie, initialResult ) rightTrie
+    in
+    List.foldl (\( k, v ) result -> leftStep k v result) intermediateResult leftovers
 
 
 expand : String -> Trie a -> List String
