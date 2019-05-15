@@ -34,12 +34,12 @@ suffixString =
         |> Fuzz.map (String.concat >> String.left 10)
 
 
-longString =
+longString factor =
     Fuzz.frequency
-        [ ( 1, Fuzz.constant (String.repeat 100 "a") )
-        , ( 1, Fuzz.constant (String.repeat 100 "b") )
-        , ( 1, Fuzz.constant (String.repeat 100 "c") )
-        , ( 1, Fuzz.constant (String.repeat 100 "d") )
+        [ ( 1, Fuzz.constant (String.repeat factor "a") )
+        , ( 1, Fuzz.constant (String.repeat factor "b") )
+        , ( 1, Fuzz.constant (String.repeat factor "c") )
+        , ( 1, Fuzz.constant (String.repeat factor "d") )
         ]
         |> Fuzz.list
         |> Fuzz.map String.concat
@@ -120,8 +120,8 @@ listOfValsReportsSizeOk =
         [ fuzz (list string)
             "Creates a trie with a list of vals and checks it has the correct size (list string)."
             test
-        , fuzz (list longString)
-            "Creates a trie with a list of vals and checks it has the correct size (list longString)."
+        , fuzz (list <| longString 10)
+            "Creates a trie with a list of vals and checks it has the correct size (list <| longString 10)."
             test
         ]
 

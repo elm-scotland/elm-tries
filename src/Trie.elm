@@ -193,13 +193,8 @@ getInner key trie =
 
 
 size : Trie a -> Int
-size (Trie maybeVal dict) =
-    case maybeVal of
-        Nothing ->
-            Dict.foldl (\k v accum -> accum + size v) 0 dict
-
-        Just _ ->
-            Dict.foldl (\k v accum -> accum + size v) 1 dict
+size trie =
+    foldr (\_ _ accum -> accum + 1) 0 trie
 
 
 keys : Trie a -> List String
