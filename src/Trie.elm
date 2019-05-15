@@ -227,19 +227,14 @@ foldl _ _ _ =
     Debug.todo "foldl"
 
 
-walkl : (List Char -> Maybe a -> b -> b) -> b -> Trie a -> b
-walkl _ _ _ =
-    Debug.todo "walkl"
-
-
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
 foldr fn accum trie =
-    walkr (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
+    foldrChars (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
 
 
-walkr : (List Char -> a -> b -> b) -> b -> Trie a -> b
-walkr fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = step, cost = \_ -> 1.0 }
+foldrChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
+foldrChars fn accum ((Trie maybeValue _) as trie) =
+    Search.depthFirst { step = wildcardStep, cost = \_ -> 1.0 }
         [ ( ( [], trie )
           , case maybeValue of
                 Nothing ->
@@ -249,11 +244,13 @@ walkr fn accum ((Trie maybeValue _) as trie) =
                     True
           )
         ]
-        |> foldGoals fn accum
+        |> foldSearchGoals fn accum
 
 
-step : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
-step ( keyAccum, Trie _ dict ) =
+{-| Expands all possible extensions of the current key path in a trie.
+-}
+wildcardStep : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+wildcardStep ( keyAccum, Trie _ dict ) =
     Dict.foldr
         (\k ((Trie maybeValue _) as innerTrie) stack ->
             ( ( k :: keyAccum, innerTrie )
@@ -270,8 +267,10 @@ step ( keyAccum, Trie _ dict ) =
         dict
 
 
-foldGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
-foldGoals fn accum search =
+{-| Performs a fold over all goals of a search over Tries, until the searh is complete.
+-}
+foldSearchGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
+foldSearchGoals fn accum search =
     case Search.nextGoal search of
         Search.Complete ->
             accum
@@ -279,13 +278,13 @@ foldGoals fn accum search =
         Search.Goal ( key, Trie maybeValue _ ) searchFn ->
             case maybeValue of
                 Nothing ->
-                    foldGoals fn accum (searchFn ())
+                    foldSearchGoals fn accum (searchFn ())
 
                 Just value ->
-                    foldGoals fn (fn key value accum) (searchFn ())
+                    foldSearchGoals fn (fn key value accum) (searchFn ())
 
         Search.Ongoing _ searchFn ->
-            foldGoals fn accum (searchFn ())
+            foldSearchGoals fn accum (searchFn ())
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
