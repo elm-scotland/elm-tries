@@ -2,6 +2,7 @@ module Example exposing
     ( emptyContainsNoVal
     , emptyInsertStringContainsVal
     , listOfNumsDoubledAllEven
+    , listOfValsAllKeysMembers
     , listOfValsContainsAllVals
     , listOfValsListsAllKeys
     , listOfValsListsAllValues
@@ -171,6 +172,28 @@ listOfNumsDoubledAllEven =
     describe "listOfNumsDoubledAllEven"
         [ fuzz (list int)
             "Creates a trie with a list of numbers, then updates to double all numbers that are odd, and checks all vals are even."
+            test
+        ]
+
+
+listOfValsAllKeysMembers : Test
+listOfValsAllKeysMembers =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> (\trie -> Expect.all (List.map (\val list -> Trie.member val trie |> Expect.true "not member of trie") vals) trie)
+    in
+    describe "listOfValsAllKeysMembers"
+        [ fuzz (list string)
+            "Creates a trie with a list of vals and ensures all keys are members (list string)."
+            test
+        , fuzz (list suffixString)
+            "Creates a trie with a list of vals and ensures all keys are members (list suffixString)."
             test
         ]
 
