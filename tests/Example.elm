@@ -73,32 +73,43 @@ emptyInsertStringContainsVal =
 
 listOfValsContainsAllVals : Test
 listOfValsContainsAllVals =
-    describe "listOfValsContainsAllVals"
-        [ fuzz (list string) "Creates a trie with a list of vals and ensures it contains all of them." <|
-            \possiblyEmptyVals ->
-                case possiblyEmptyVals of
-                    [] ->
-                        Expect.equal [] []
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
 
-                    vals ->
-                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                            |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal (Just val)) vals)
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal (Just val)) vals)
+    in
+    describe "listOfValsContainsAllVals"
+        [ fuzz (list string)
+            "Creates a trie with a list of vals and ensures it contains all of them (list string)."
+            test
+        , fuzz wordList
+            "Creates a trie with a list of vals and ensures it contains all of them (wordList)."
+            test
         ]
 
 
 listOfValsReportsSizeOk : Test
 listOfValsReportsSizeOk =
-    describe "listOfValsReportsSizeOk"
-        [ fuzz (list string) "Creates a trie with a list of vals and checks it has the correct size." <|
-            \possiblyEmptyVals ->
-                case possiblyEmptyVals of
-                    [] ->
-                        Expect.equal 0 (Trie.size Trie.empty)
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal 0 (Trie.size Trie.empty)
 
-                    vals ->
-                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                            |> Trie.size
-                            |> Expect.equal (Set.size (Set.fromList vals))
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> Trie.size
+                        |> Expect.equal (Set.size (Set.fromList vals))
+    in
+    describe "listOfValsReportsSizeOk"
+        [ fuzz (list string)
+            "Creates a trie with a list of vals and checks it has the correct size."
+            test
         ]
 
 
@@ -133,18 +144,21 @@ listOfNumsDoubledAllEven =
 
                     else
                         Expect.fail "not even"
+
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> Trie.insert (String.fromInt val) val trie) Trie.empty vals
+                        |> doubleOdd vals
+                        |> Expect.all (List.map (\val trie -> Trie.get (String.fromInt val) trie |> expectJustEven) vals)
     in
     describe "listOfNumsDoubledAllEven"
-        [ fuzz (list int) "Creates a trie with a list of numbers, then updates to double all numbers that are odd, and checks all vals are even." <|
-            \possiblyEmptyVals ->
-                case possiblyEmptyVals of
-                    [] ->
-                        Expect.equal [] []
-
-                    vals ->
-                        List.foldl (\val trie -> Trie.insert (String.fromInt val) val trie) Trie.empty vals
-                            |> doubleOdd vals
-                            |> Expect.all (List.map (\val trie -> Trie.get (String.fromInt val) trie |> expectJustEven) vals)
+        [ fuzz (list int)
+            "Creates a trie with a list of numbers, then updates to double all numbers that are odd, and checks all vals are even."
+            test
         ]
 
 
@@ -153,48 +167,59 @@ listOfValsRemovedContainsNone =
     let
         removeAll keys trie =
             List.foldl (\key accum -> Trie.remove key accum) trie keys
+
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> removeAll vals
+                        |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal Nothing) vals)
     in
     describe "listOfValsRemovedContainsNone"
-        [ fuzz (list string) "Creates a trie with a list of vals, removes all, and checks none are present." <|
-            \possiblyEmptyVals ->
-                case possiblyEmptyVals of
-                    [] ->
-                        Expect.equal [] []
-
-                    vals ->
-                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                            |> removeAll vals
-                            |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal Nothing) vals)
+        [ fuzz (list string)
+            "Creates a trie with a list of vals, removes all, and checks none are present."
+            test
         ]
 
 
 listOfValsListsAllKeys : Test
 listOfValsListsAllKeys =
-    describe "listOfValsListsAllKeys"
-        [ fuzz (list string) "Creates a trie with a list of vals and ensures lists all of them as keys." <|
-            \possiblyEmptyVals ->
-                case possiblyEmptyVals of
-                    [] ->
-                        Expect.equal [] []
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
 
-                    vals ->
-                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                            |> Trie.keys
-                            |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> Trie.keys
+                        |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
+    in
+    describe "listOfValsListsAllKeys"
+        [ fuzz (list string)
+            "Creates a trie with a list of vals and ensures lists all of them as keys."
+            test
         ]
 
 
 listOfValsListsAllValues : Test
 listOfValsListsAllValues =
-    describe "listOfValsListsAllValues"
-        [ fuzz (list string) "Creates a trie with a list of vals and ensures lists all of them as values." <|
-            \possiblyEmptyVals ->
-                case possiblyEmptyVals of
-                    [] ->
-                        Expect.equal [] []
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
 
-                    vals ->
-                        List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                            |> Trie.values
-                            |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> Trie.values
+                        |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
+    in
+    describe "listOfValsListsAllValues"
+        [ fuzz (list string)
+            "Creates a trie with a list of vals and ensures lists all of them as values."
+            test
         ]
