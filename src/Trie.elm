@@ -228,8 +228,31 @@ map _ _ =
 
 
 foldl : (String -> a -> b -> b) -> b -> Trie a -> b
-foldl _ _ _ =
-    Debug.todo "foldl"
+foldl fn accum trie =
+    foldlChars (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
+
+
+foldlChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
+foldlChars fn accum ((Trie maybeValue _) as trie) =
+    Search.depthFirst { step = wildcardStepl, cost = \_ -> 1.0 }
+        [ ( ( [], trie ), isJust maybeValue ) ]
+        |> foldSearchGoals fn accum
+
+
+{-| Expands all possible extensions of the current key path in a trie.
+
+The `Dict` containing the child tries is folded left in this implementation.
+
+-}
+wildcardStepl : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+wildcardStepl ( keyAccum, Trie _ dict ) =
+    Dict.foldl
+        (\k ((Trie maybeValue _) as innerTrie) stack ->
+            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
+                :: stack
+        )
+        []
+        dict
 
 
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
@@ -239,15 +262,18 @@ foldr fn accum trie =
 
 foldrChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
 foldrChars fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = wildcardStep, cost = \_ -> 1.0 }
+    Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
         [ ( ( [], trie ), isJust maybeValue ) ]
         |> foldSearchGoals fn accum
 
 
 {-| Expands all possible extensions of the current key path in a trie.
+
+The `Dict` containing the child tries is folded right in this implementation.
+
 -}
-wildcardStep : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
-wildcardStep ( keyAccum, Trie _ dict ) =
+wildcardStepr : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+wildcardStepr ( keyAccum, Trie _ dict ) =
     Dict.foldr
         (\k ((Trie maybeValue _) as innerTrie) stack ->
             ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
