@@ -235,15 +235,7 @@ foldr fn accum trie =
 foldrChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
 foldrChars fn accum ((Trie maybeValue _) as trie) =
     Search.depthFirst { step = wildcardStep, cost = \_ -> 1.0 }
-        [ ( ( [], trie )
-          , case maybeValue of
-                Nothing ->
-                    False
-
-                Just _ ->
-                    True
-          )
-        ]
+        [ ( ( [], trie ), isJust maybeValue ) ]
         |> foldSearchGoals fn accum
 
 
@@ -253,14 +245,7 @@ wildcardStep : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
 wildcardStep ( keyAccum, Trie _ dict ) =
     Dict.foldr
         (\k ((Trie maybeValue _) as innerTrie) stack ->
-            ( ( k :: keyAccum, innerTrie )
-            , case maybeValue of
-                Nothing ->
-                    False
-
-                Just _ ->
-                    True
-            )
+            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
                 :: stack
         )
         []
@@ -363,3 +348,13 @@ subtrie _ _ =
 -- match : (List Char -> Char -> a -> Bool) -> Trie a -> Bool
 -- match _ _ =
 --     Debug.todo "map"
+
+
+isJust : Maybe a -> Bool
+isJust maybeSomething =
+    case maybeSomething of
+        Nothing ->
+            False
+
+        Just _ ->
+            True
