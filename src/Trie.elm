@@ -164,8 +164,13 @@ isEmpty trie =
 
 
 member : String -> Trie a -> Bool
-member _ _ =
-    Debug.todo "member"
+member key trie =
+    case subtrie key trie of
+        Nothing ->
+            False
+
+        Just (Trie maybeValue _) ->
+            isJust maybeValue
 
 
 get : String -> Trie a -> Maybe a
