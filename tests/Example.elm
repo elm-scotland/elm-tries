@@ -4,6 +4,8 @@ module Example exposing
     , listOfNumsDoubledAllEven
     , listOfValsAllKeysMembers
     , listOfValsContainsAllVals
+    , listOfValsFoldlAllKeys
+    , listOfValsFoldrAllKeys
     , listOfValsListsAllKeys
     , listOfValsListsAllValues
     , listOfValsRemovedContainsNone
@@ -266,5 +268,51 @@ listOfValsListsAllValues =
             test
         , fuzz (list suffixString)
             "Creates a trie with a list of vals and ensures lists all of them as values (list suffixString)."
+            test
+        ]
+
+
+listOfValsFoldlAllKeys : Test
+listOfValsFoldlAllKeys =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> Trie.foldl (\k _ accum -> Set.insert k accum) Set.empty
+                        |> Expect.all (List.map (\val list -> Set.member val list |> Expect.true "not member of foldl keys") vals)
+    in
+    describe "listOfValsFoldlAllKeys"
+        [ fuzz (list string)
+            "Creates a trie with a list of vals and folds it left, checking all keys are gathered in the fold (list string)."
+            test
+        , fuzz (list suffixString)
+            "Creates a trie with a list of vals and folds it left, checking all keys are gathered in the fold (list suffixString)."
+            test
+        ]
+
+
+listOfValsFoldrAllKeys : Test
+listOfValsFoldrAllKeys =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                        |> Trie.foldr (\k _ accum -> Set.insert k accum) Set.empty
+                        |> Expect.all (List.map (\val list -> Set.member val list |> Expect.true "not member of foldl keys") vals)
+    in
+    describe "listOfValsFoldrAllKeys"
+        [ fuzz (list string)
+            "Creates a trie with a list of vals and folds it right, checking all keys are gathered in the fold (list string)."
+            test
+        , fuzz (list suffixString)
+            "Creates a trie with a list of vals and folds it right, checking all keys are gathered in the fold (list suffixString)."
             test
         ]
