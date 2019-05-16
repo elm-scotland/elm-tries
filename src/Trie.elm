@@ -231,10 +231,10 @@ mapChars : (List Char -> a -> b) -> List Char -> Trie a -> Trie b
 mapChars fn keyAccum ((Trie maybeValue dict) as trie) =
     case maybeValue of
         Nothing ->
-            Trie maybeValue (Dict.map (mapChars fn keyAccum) dict)
+            Trie Nothing (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
 
         Just value ->
-            Trie (fn keyAccum value) (Dict.map (mapChars fn keyAccum) dict)
+            Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
 
 
 foldl : (String -> a -> b -> b) -> b -> Trie a -> b
