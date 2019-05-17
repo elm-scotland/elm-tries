@@ -1,11 +1,9 @@
 module TrieTest exposing (suite)
 
 import DictIface exposing (IDict)
-import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, int, list, string)
-import Fuzzers exposing (..)
-import Set
-import Test exposing (..)
+import Fuzz exposing (int, list, string)
+import Fuzzers exposing (longString, suffixString)
+import Test exposing (Test, describe)
 import Trie exposing (Trie)
 
 
