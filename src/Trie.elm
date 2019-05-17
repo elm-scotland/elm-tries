@@ -53,48 +53,48 @@ import Search
 
 
 -- Ideas
--- expandIgnoreCase : String -> Trie a -> List String
--- matchesIgnoreCase : String -> Trie a -> Bool
--- match : (List Char -> Char -> a -> Bool) -> Trie a -> Bool
+-- expandIgnoreCase : String -> Trie comparable a -> List String
+-- matchesIgnoreCase : String -> Trie comparable a -> Bool
+-- match : (List Char -> Char -> a -> Bool) -> Trie comparable a -> Bool
 -- match _ _ =
 --     Debug.todo "map"
 
 
-type Trie a
-    = Trie (Maybe a) (Dict Char (Trie a))
+type Trie comparable a
+    = Trie (Maybe a) (Dict comparable (Trie comparable a))
 
 
-empty : Trie a
+empty : Trie comparable a
 empty =
     Trie Nothing Dict.empty
 
 
-singleton : String -> a -> Trie a
+singleton : String -> a -> Trie Char a
 singleton key val =
     singletonInner (String.toList key) val
 
 
-insert : String -> a -> Trie a -> Trie a
+insert : String -> a -> Trie Char a -> Trie Char a
 insert key val trie =
     insertInner (String.toList key) val trie
 
 
-update : String -> (Maybe a -> Maybe a) -> Trie a -> Trie a
+update : String -> (Maybe a -> Maybe a) -> Trie Char a -> Trie Char a
 update key fn trie =
     updateInner (String.toList key) fn trie
 
 
-remove : String -> Trie a -> Trie a
+remove : String -> Trie Char a -> Trie Char a
 remove key trie =
     removeInner (String.toList key) trie
 
 
-isEmpty : Trie a -> Bool
+isEmpty : Trie Char a -> Bool
 isEmpty trie =
     size trie == 0
 
 
-member : String -> Trie a -> Bool
+member : String -> Trie Char a -> Bool
 member key trie =
     case subtrie key trie of
         Nothing ->
@@ -104,52 +104,52 @@ member key trie =
             isJust maybeValue
 
 
-get : String -> Trie a -> Maybe a
+get : String -> Trie Char a -> Maybe a
 get key trie =
     getInner (String.toList key) trie
 
 
-size : Trie a -> Int
+size : Trie Char a -> Int
 size trie =
     foldr (\_ _ accum -> accum + 1) 0 trie
 
 
-keys : Trie a -> List String
+keys : Trie Char a -> List String
 keys trie =
     foldr (\key value keyList -> key :: keyList) [] trie
 
 
-values : Trie a -> List a
+values : Trie Char a -> List a
 values trie =
     foldr (\key value valueList -> value :: valueList) [] trie
 
 
-toList : Trie a -> List ( String, a )
+toList : Trie Char a -> List ( String, a )
 toList trie =
     foldr (\key value list -> ( key, value ) :: list) [] trie
 
 
-fromList : List ( String, a ) -> Trie a
+fromList : List ( String, a ) -> Trie Char a
 fromList assocs =
     List.foldl (\( key, value ) dict -> insert key value dict) empty assocs
 
 
-map : (String -> a -> b) -> Trie a -> Trie b
+map : (String -> a -> b) -> Trie Char a -> Trie Char b
 map fn trie =
     mapInner (\chars -> fn <| String.fromList (List.reverse chars)) [] trie
 
 
-foldl : (String -> a -> b -> b) -> b -> Trie a -> b
+foldl : (String -> a -> b -> b) -> b -> Trie Char a -> b
 foldl fn accum trie =
     foldlInner (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
 
 
-foldr : (String -> a -> b -> b) -> b -> Trie a -> b
+foldr : (String -> a -> b -> b) -> b -> Trie Char a -> b
 foldr fn accum trie =
     foldrInner (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
 
 
-filter : (String -> a -> Bool) -> Trie a -> Trie a
+filter : (String -> a -> Bool) -> Trie Char a -> Trie Char a
 filter isGood trie =
     foldl
         (\k v d ->
@@ -163,7 +163,7 @@ filter isGood trie =
         trie
 
 
-partition : (String -> a -> Bool) -> Trie a -> ( Trie a, Trie a )
+partition : (String -> a -> Bool) -> Trie Char a -> ( Trie Char a, Trie Char a )
 partition isGood trie =
     let
         add key value ( t1, t2 ) =
@@ -176,17 +176,17 @@ partition isGood trie =
     foldl add ( empty, empty ) trie
 
 
-union : Trie a -> Trie a -> Trie a
+union : Trie Char a -> Trie Char a -> Trie Char a
 union t1 t2 =
     foldl insert t2 t1
 
 
-intersect : Trie a -> Trie a -> Trie a
+intersect : Trie Char a -> Trie Char a -> Trie Char a
 intersect t1 t2 =
     filter (\k _ -> member k t2) t1
 
 
-diff : Trie a -> Trie b -> Trie a
+diff : Trie Char a -> Trie Char b -> Trie Char a
 diff t1 t2 =
     foldl (\k v t -> remove k t) t1 t2
 
@@ -195,8 +195,8 @@ merge :
     (String -> a -> result -> result)
     -> (String -> a -> b -> result -> result)
     -> (String -> b -> result -> result)
-    -> Trie a
-    -> Trie b
+    -> Trie Char a
+    -> Trie Char b
     -> result
     -> result
 merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
@@ -222,7 +222,7 @@ merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
     List.foldl (\( k, v ) result -> leftStep k v result) intermediateResult leftovers
 
 
-expand : String -> Trie a -> List String
+expand : String -> Trie Char a -> List String
 expand key trie =
     case subtrie key trie of
         Nothing ->
@@ -232,7 +232,7 @@ expand key trie =
             foldr (\innerKey _ accum -> (key ++ innerKey) :: accum) [] innerTrie
 
 
-matches : String -> Trie a -> Bool
+matches : String -> Trie Char a -> Bool
 matches key trie =
     case subtrie key trie of
         Nothing ->
@@ -242,7 +242,7 @@ matches key trie =
             isJust maybeValue
 
 
-subtrie : String -> Trie a -> Maybe (Trie a)
+subtrie : String -> Trie Char a -> Maybe (Trie Char a)
 subtrie key trie =
     subtrieInner (String.toList key) trie
 
@@ -251,7 +251,7 @@ subtrie key trie =
 -- Inner functions
 
 
-singletonInner : List Char -> a -> Trie a
+singletonInner : List comparable -> a -> Trie comparable a
 singletonInner key val =
     case key of
         [] ->
@@ -261,7 +261,7 @@ singletonInner key val =
             Trie Nothing (Dict.singleton head (singletonInner tail val))
 
 
-insertInner : List Char -> a -> Trie a -> Trie a
+insertInner : List comparable -> a -> Trie comparable a -> Trie comparable a
 insertInner key val trie =
     case ( key, trie ) of
         ( [], Trie _ rem ) ->
@@ -282,7 +282,7 @@ insertInner key val trie =
                 )
 
 
-updateInner : List Char -> (Maybe a -> Maybe a) -> Trie a -> Trie a
+updateInner : List comparable -> (Maybe a -> Maybe a) -> Trie comparable a -> Trie comparable a
 updateInner key fn trie =
     case ( key, trie ) of
         ( [], Trie maybeVal rem ) ->
@@ -308,7 +308,7 @@ updateInner key fn trie =
                 )
 
 
-removeInner : List Char -> Trie a -> Trie a
+removeInner : List comparable -> Trie comparable a -> Trie comparable a
 removeInner key trie =
     case ( key, trie ) of
         ( [], Trie _ rem ) ->
@@ -329,7 +329,7 @@ removeInner key trie =
                 )
 
 
-getInner : List Char -> Trie a -> Maybe a
+getInner : List comparable -> Trie comparable a -> Maybe a
 getInner key trie =
     case ( key, trie ) of
         ( [], Trie maybeSomeVal _ ) ->
@@ -348,7 +348,7 @@ getInner key trie =
                     getInner tail subTrie
 
 
-mapInner : (List Char -> a -> b) -> List Char -> Trie a -> Trie b
+mapInner : (List comparable -> a -> b) -> List comparable -> Trie comparable a -> Trie comparable b
 mapInner fn keyAccum ((Trie maybeValue dict) as trie) =
     case maybeValue of
         Nothing ->
@@ -358,21 +358,21 @@ mapInner fn keyAccum ((Trie maybeValue dict) as trie) =
             Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> mapInner fn (key :: keyAccum) innerTrie) dict)
 
 
-foldlInner : (List Char -> a -> b -> b) -> b -> Trie a -> b
+foldlInner : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
 foldlInner fn accum ((Trie maybeValue _) as trie) =
     Search.depthFirst { step = wildcardStepl, cost = \_ -> 1.0 }
         [ ( ( [], trie ), isJust maybeValue ) ]
         |> foldSearchGoals fn accum
 
 
-foldrInner : (List Char -> a -> b -> b) -> b -> Trie a -> b
+foldrInner : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
 foldrInner fn accum ((Trie maybeValue _) as trie) =
     Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
         [ ( ( [], trie ), isJust maybeValue ) ]
         |> foldSearchGoals fn accum
 
 
-subtrieInner : List Char -> Trie a -> Maybe (Trie a)
+subtrieInner : List comparable -> Trie comparable a -> Maybe (Trie comparable a)
 subtrieInner key ((Trie maybeValue dict) as trie) =
     case key of
         [] ->
@@ -406,7 +406,7 @@ isJust maybeSomething =
 The `Dict` containing the child tries is folded left in this implementation.
 
 -}
-wildcardStepl : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+wildcardStepl : ( List comparable, Trie comparable a ) -> List ( ( List comparable, Trie comparable a ), Bool )
 wildcardStepl ( keyAccum, Trie _ dict ) =
     Dict.foldl
         (\k ((Trie maybeValue _) as innerTrie) stack ->
@@ -422,7 +422,7 @@ wildcardStepl ( keyAccum, Trie _ dict ) =
 The `Dict` containing the child tries is folded right in this implementation.
 
 -}
-wildcardStepr : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+wildcardStepr : ( List comparable, Trie comparable a ) -> List ( ( List comparable, Trie comparable a ), Bool )
 wildcardStepr ( keyAccum, Trie _ dict ) =
     Dict.foldr
         (\k ((Trie maybeValue _) as innerTrie) stack ->
@@ -435,7 +435,7 @@ wildcardStepr ( keyAccum, Trie _ dict ) =
 
 {-| Performs a fold over all goals of a search over Tries, until the searh is complete.
 -}
-foldSearchGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
+foldSearchGoals : (List comparable -> a -> b -> b) -> b -> Search.SearchResult ( List comparable, Trie comparable a ) -> b
 foldSearchGoals fn accum search =
     case Search.nextGoal search of
         Search.Complete ->

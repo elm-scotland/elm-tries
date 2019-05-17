@@ -7,7 +7,7 @@ import Test exposing (Test, describe)
 import Trie exposing (Trie)
 
 
-trie : IDict String a (Trie a) b (Trie b) result
+trie : IDict String a (Trie Char a) b (Trie Char b) result
 trie =
     { empty = Trie.empty
     , singleton = Trie.singleton
