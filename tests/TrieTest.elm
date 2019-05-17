@@ -7,7 +7,7 @@ import Test exposing (Test, describe)
 import Trie exposing (Trie)
 
 
-trie : IDict String a (Trie a) b (Trie b)
+trie : IDict String a (Trie a) b (Trie b) result
 trie =
     { empty = Trie.empty
     , singleton = Trie.singleton
@@ -30,6 +30,7 @@ trie =
     , union = Trie.union
     , intersect = Trie.intersect
     , diff = Trie.diff
+    , merge = Trie.merge
     }
 
 

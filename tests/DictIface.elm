@@ -24,7 +24,7 @@ import Set exposing (Set)
 import Test exposing (Test, fuzz)
 
 
-type alias IDict comparable v dict b dictb =
+type alias IDict comparable v dict b dictb result =
     { empty : dict
     , singleton : comparable -> v -> dict
     , insert : comparable -> v -> dict -> dict
@@ -45,20 +45,19 @@ type alias IDict comparable v dict b dictb =
     , partition : (comparable -> v -> Bool) -> dict -> ( dict, dict )
     , union : dict -> dict -> dict
     , intersect : dict -> dict -> dict
-    , diff : dict -> dict -> dict
-
-    -- , merge :
-    --     (comparable -> v -> result -> result)
-    --     -> (comparable -> v -> b -> result -> result)
-    --     -> (comparable -> b -> result -> result)
-    --     -> dict
-    --     -> dict
-    --     -> result
-    --     -> result
+    , diff : dict -> dictb -> dict
+    , merge :
+        (comparable -> v -> result -> result)
+        -> (comparable -> v -> b -> result -> result)
+        -> (comparable -> b -> result -> result)
+        -> dict
+        -> dictb
+        -> result
+        -> result
     }
 
 
-emptyIsEmpty : String -> IDict comparable a dict b dictb -> Test
+emptyIsEmpty : String -> IDict comparable a dict b dictb result -> Test
 emptyIsEmpty implName dictImpl =
     let
         test () =
@@ -67,7 +66,7 @@ emptyIsEmpty implName dictImpl =
     Test.test "Check empty trie reports isEmpty." test
 
 
-emptyContainsNoVal : String -> String -> Fuzzer String -> IDict String String dict b dictb -> Test
+emptyContainsNoVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
 emptyContainsNoVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -76,7 +75,7 @@ emptyContainsNoVal fuzzName implName fuzzer dictImpl =
     fuzz fuzzer ("Checks an empty " ++ implName ++ " does not get any keys (" ++ fuzzName ++ ").") test
 
 
-nonEmptyIsNotEmpty : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb -> Test
+nonEmptyIsNotEmpty : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb result -> Test
 nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -94,7 +93,7 @@ nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
         test
 
 
-singletonContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb -> Test
+singletonContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
 singletonContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -105,7 +104,7 @@ singletonContainsVal fuzzName implName fuzzer dictImpl =
         test
 
 
-singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb -> Test
+singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
 singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -116,7 +115,7 @@ singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
         test
 
 
-emptyInsertStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb -> Test
+emptyInsertStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
 emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -127,7 +126,7 @@ emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsContainsAllVals : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb -> Test
+listOfValsContainsAllVals : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb result -> Test
 listOfValsContainsAllVals fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -144,7 +143,7 @@ listOfValsContainsAllVals fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsReportsSizeOk : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb -> Test
+listOfValsReportsSizeOk : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb result -> Test
 listOfValsReportsSizeOk fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -162,7 +161,7 @@ listOfValsReportsSizeOk fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfNumsDoubledAllEven : String -> String -> Fuzzer (List Int) -> IDict String Int dict b dictb -> Test
+listOfNumsDoubledAllEven : String -> String -> Fuzzer (List Int) -> IDict String Int dict b dictb result -> Test
 listOfNumsDoubledAllEven fuzzName implName fuzzer dictImpl =
     let
         doubleOdd keys trie =
@@ -209,7 +208,7 @@ listOfNumsDoubledAllEven fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsAllKeysMembers : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb -> Test
+listOfValsAllKeysMembers : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb result -> Test
 listOfValsAllKeysMembers fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -226,7 +225,7 @@ listOfValsAllKeysMembers fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsRemovedContainsNone : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb -> Test
+listOfValsRemovedContainsNone : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb result -> Test
 listOfValsRemovedContainsNone fuzzName implName fuzzer dictImpl =
     let
         removeAll keys trie =
@@ -247,7 +246,7 @@ listOfValsRemovedContainsNone fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsListsAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb -> Test
+listOfValsListsAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb result -> Test
 listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -265,7 +264,7 @@ listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsListsAllValues : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb -> Test
+listOfValsListsAllValues : String -> String -> Fuzzer (List String) -> IDict String String dict b dictb result -> Test
 listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -283,7 +282,7 @@ listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsFoldlAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict (Set String) dictb -> Test
+listOfValsFoldlAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict (Set String) dictb result -> Test
 listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -301,7 +300,7 @@ listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsFoldrAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict (Set String) dictb -> Test
+listOfValsFoldrAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict (Set String) dictb result -> Test
 listOfValsFoldrAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
