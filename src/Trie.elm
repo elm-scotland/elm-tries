@@ -51,6 +51,15 @@ import Dict exposing (Dict)
 import Search
 
 
+
+-- Ideas
+-- expandIgnoreCase : String -> Trie a -> List String
+-- matchesIgnoreCase : String -> Trie a -> Bool
+-- match : (List Char -> Char -> a -> Bool) -> Trie a -> Bool
+-- match _ _ =
+--     Debug.todo "map"
+
+
 type Trie a
     = Trie (Maybe a) (Dict Char (Trie a))
 
@@ -65,40 +74,9 @@ singleton key val =
     singletonInner (String.toList key) val
 
 
-singletonInner : List Char -> a -> Trie a
-singletonInner key val =
-    case key of
-        [] ->
-            Trie (Just val) Dict.empty
-
-        head :: tail ->
-            Trie Nothing (Dict.singleton head (singletonInner tail val))
-
-
 insert : String -> a -> Trie a -> Trie a
 insert key val trie =
     insertInner (String.toList key) val trie
-
-
-insertInner : List Char -> a -> Trie a -> Trie a
-insertInner key val trie =
-    case ( key, trie ) of
-        ( [], Trie _ rem ) ->
-            Trie (Just val) rem
-
-        ( head :: tail, Trie maybeSomeVal rem ) ->
-            Trie maybeSomeVal
-                (Dict.update head
-                    (\maybeTrie ->
-                        case maybeTrie of
-                            Nothing ->
-                                singletonInner tail val |> Just
-
-                            Just existingTrie ->
-                                insertInner tail val existingTrie |> Just
-                    )
-                    rem
-                )
 
 
 update : String -> (Maybe a -> Maybe a) -> Trie a -> Trie a
@@ -106,56 +84,9 @@ update key fn trie =
     updateInner (String.toList key) fn trie
 
 
-updateInner : List Char -> (Maybe a -> Maybe a) -> Trie a -> Trie a
-updateInner key fn trie =
-    case ( key, trie ) of
-        ( [], Trie maybeVal rem ) ->
-            Trie (fn maybeVal) rem
-
-        ( head :: tail, Trie maybeSomeVal rem ) ->
-            Trie maybeSomeVal
-                (Dict.update head
-                    (\maybeTrie ->
-                        case maybeTrie of
-                            Nothing ->
-                                case fn Nothing of
-                                    Nothing ->
-                                        Just empty
-
-                                    Just fnVal ->
-                                        singletonInner tail fnVal |> Just
-
-                            Just existingTrie ->
-                                updateInner tail fn existingTrie |> Just
-                    )
-                    rem
-                )
-
-
 remove : String -> Trie a -> Trie a
 remove key trie =
     removeInner (String.toList key) trie
-
-
-removeInner : List Char -> Trie a -> Trie a
-removeInner key trie =
-    case ( key, trie ) of
-        ( [], Trie _ rem ) ->
-            Trie Nothing rem
-
-        ( head :: tail, Trie maybeSomeVal rem ) ->
-            Trie maybeSomeVal
-                (Dict.update head
-                    (\maybeTrie ->
-                        case maybeTrie of
-                            Nothing ->
-                                Nothing
-
-                            Just existingTrie ->
-                                removeInner tail existingTrie |> Just
-                    )
-                    rem
-                )
 
 
 isEmpty : Trie a -> Bool
@@ -176,25 +107,6 @@ member key trie =
 get : String -> Trie a -> Maybe a
 get key trie =
     getInner (String.toList key) trie
-
-
-getInner : List Char -> Trie a -> Maybe a
-getInner key trie =
-    case ( key, trie ) of
-        ( [], Trie maybeSomeVal _ ) ->
-            maybeSomeVal
-
-        ( head :: tail, Trie _ rem ) ->
-            let
-                maybeTrie =
-                    Dict.get head rem
-            in
-            case maybeTrie of
-                Nothing ->
-                    Nothing
-
-                Just subTrie ->
-                    getInner tail subTrie
 
 
 size : Trie a -> Int
@@ -227,42 +139,9 @@ map fn trie =
     mapChars (\chars -> fn <| String.fromList (List.reverse chars)) [] trie
 
 
-mapChars : (List Char -> a -> b) -> List Char -> Trie a -> Trie b
-mapChars fn keyAccum ((Trie maybeValue dict) as trie) =
-    case maybeValue of
-        Nothing ->
-            Trie Nothing (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
-
-        Just value ->
-            Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
-
-
 foldl : (String -> a -> b -> b) -> b -> Trie a -> b
 foldl fn accum trie =
     foldlChars (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
-
-
-foldlChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
-foldlChars fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = wildcardStepl, cost = \_ -> 1.0 }
-        [ ( ( [], trie ), isJust maybeValue ) ]
-        |> foldSearchGoals fn accum
-
-
-{-| Expands all possible extensions of the current key path in a trie.
-
-The `Dict` containing the child tries is folded left in this implementation.
-
--}
-wildcardStepl : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
-wildcardStepl ( keyAccum, Trie _ dict ) =
-    Dict.foldl
-        (\k ((Trie maybeValue _) as innerTrie) stack ->
-            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
-                :: stack
-        )
-        []
-        dict
 
 
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
@@ -275,42 +154,6 @@ foldrChars fn accum ((Trie maybeValue _) as trie) =
     Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
         [ ( ( [], trie ), isJust maybeValue ) ]
         |> foldSearchGoals fn accum
-
-
-{-| Expands all possible extensions of the current key path in a trie.
-
-The `Dict` containing the child tries is folded right in this implementation.
-
--}
-wildcardStepr : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
-wildcardStepr ( keyAccum, Trie _ dict ) =
-    Dict.foldr
-        (\k ((Trie maybeValue _) as innerTrie) stack ->
-            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
-                :: stack
-        )
-        []
-        dict
-
-
-{-| Performs a fold over all goals of a search over Tries, until the searh is complete.
--}
-foldSearchGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
-foldSearchGoals fn accum search =
-    case Search.nextGoal search of
-        Search.Complete ->
-            accum
-
-        Search.Goal ( key, Trie maybeValue _ ) searchFn ->
-            case maybeValue of
-                Nothing ->
-                    foldSearchGoals fn accum (searchFn ())
-
-                Just value ->
-                    foldSearchGoals fn (fn key value accum) (searchFn ())
-
-        Search.Ongoing _ searchFn ->
-            foldSearchGoals fn accum (searchFn ())
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
@@ -411,6 +254,124 @@ subtrie key trie =
     subtrieInner (String.toList key) trie
 
 
+
+-- Inner functions
+
+
+singletonInner : List Char -> a -> Trie a
+singletonInner key val =
+    case key of
+        [] ->
+            Trie (Just val) Dict.empty
+
+        head :: tail ->
+            Trie Nothing (Dict.singleton head (singletonInner tail val))
+
+
+insertInner : List Char -> a -> Trie a -> Trie a
+insertInner key val trie =
+    case ( key, trie ) of
+        ( [], Trie _ rem ) ->
+            Trie (Just val) rem
+
+        ( head :: tail, Trie maybeSomeVal rem ) ->
+            Trie maybeSomeVal
+                (Dict.update head
+                    (\maybeTrie ->
+                        case maybeTrie of
+                            Nothing ->
+                                singletonInner tail val |> Just
+
+                            Just existingTrie ->
+                                insertInner tail val existingTrie |> Just
+                    )
+                    rem
+                )
+
+
+updateInner : List Char -> (Maybe a -> Maybe a) -> Trie a -> Trie a
+updateInner key fn trie =
+    case ( key, trie ) of
+        ( [], Trie maybeVal rem ) ->
+            Trie (fn maybeVal) rem
+
+        ( head :: tail, Trie maybeSomeVal rem ) ->
+            Trie maybeSomeVal
+                (Dict.update head
+                    (\maybeTrie ->
+                        case maybeTrie of
+                            Nothing ->
+                                case fn Nothing of
+                                    Nothing ->
+                                        Just empty
+
+                                    Just fnVal ->
+                                        singletonInner tail fnVal |> Just
+
+                            Just existingTrie ->
+                                updateInner tail fn existingTrie |> Just
+                    )
+                    rem
+                )
+
+
+removeInner : List Char -> Trie a -> Trie a
+removeInner key trie =
+    case ( key, trie ) of
+        ( [], Trie _ rem ) ->
+            Trie Nothing rem
+
+        ( head :: tail, Trie maybeSomeVal rem ) ->
+            Trie maybeSomeVal
+                (Dict.update head
+                    (\maybeTrie ->
+                        case maybeTrie of
+                            Nothing ->
+                                Nothing
+
+                            Just existingTrie ->
+                                removeInner tail existingTrie |> Just
+                    )
+                    rem
+                )
+
+
+getInner : List Char -> Trie a -> Maybe a
+getInner key trie =
+    case ( key, trie ) of
+        ( [], Trie maybeSomeVal _ ) ->
+            maybeSomeVal
+
+        ( head :: tail, Trie _ rem ) ->
+            let
+                maybeTrie =
+                    Dict.get head rem
+            in
+            case maybeTrie of
+                Nothing ->
+                    Nothing
+
+                Just subTrie ->
+                    getInner tail subTrie
+
+
+mapChars : (List Char -> a -> b) -> List Char -> Trie a -> Trie b
+mapChars fn keyAccum ((Trie maybeValue dict) as trie) =
+    case maybeValue of
+        Nothing ->
+            Trie Nothing (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
+
+        Just value ->
+            Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
+
+
+foldlChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
+foldlChars fn accum ((Trie maybeValue _) as trie) =
+    Search.depthFirst { step = wildcardStepl, cost = \_ -> 1.0 }
+        [ ( ( [], trie ), isJust maybeValue ) ]
+        |> foldSearchGoals fn accum
+
+
 subtrieInner : List Char -> Trie a -> Maybe (Trie a)
 subtrieInner key ((Trie maybeValue dict) as trie) =
     case key of
@@ -427,12 +388,7 @@ subtrieInner key ((Trie maybeValue dict) as trie) =
 
 
 
--- Ideas
--- expandIgnoreCase : String -> Trie a -> List String
--- matchesIgnoreCase : String -> Trie a -> Bool
--- match : (List Char -> Char -> a -> Bool) -> Trie a -> Bool
--- match _ _ =
---     Debug.todo "map"
+-- Helper functions.
 
 
 isJust : Maybe a -> Bool
@@ -443,3 +399,55 @@ isJust maybeSomething =
 
         Just _ ->
             True
+
+
+{-| Expands all possible extensions of the current key path in a trie.
+
+The `Dict` containing the child tries is folded left in this implementation.
+
+-}
+wildcardStepl : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+wildcardStepl ( keyAccum, Trie _ dict ) =
+    Dict.foldl
+        (\k ((Trie maybeValue _) as innerTrie) stack ->
+            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
+                :: stack
+        )
+        []
+        dict
+
+
+{-| Expands all possible extensions of the current key path in a trie.
+
+The `Dict` containing the child tries is folded right in this implementation.
+
+-}
+wildcardStepr : ( List Char, Trie a ) -> List ( ( List Char, Trie a ), Bool )
+wildcardStepr ( keyAccum, Trie _ dict ) =
+    Dict.foldr
+        (\k ((Trie maybeValue _) as innerTrie) stack ->
+            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
+                :: stack
+        )
+        []
+        dict
+
+
+{-| Performs a fold over all goals of a search over Tries, until the searh is complete.
+-}
+foldSearchGoals : (List Char -> a -> b -> b) -> b -> Search.SearchResult ( List Char, Trie a ) -> b
+foldSearchGoals fn accum search =
+    case Search.nextGoal search of
+        Search.Complete ->
+            accum
+
+        Search.Goal ( key, Trie maybeValue _ ) searchFn ->
+            case maybeValue of
+                Nothing ->
+                    foldSearchGoals fn accum (searchFn ())
+
+                Just value ->
+                    foldSearchGoals fn (fn key value accum) (searchFn ())
+
+        Search.Ongoing _ searchFn ->
+            foldSearchGoals fn accum (searchFn ())
