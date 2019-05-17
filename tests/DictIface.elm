@@ -19,40 +19,65 @@ module DictIface exposing
 
 import Dict exposing (Dict)
 import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, int, list, string)
-import Fuzzers exposing (..)
-import Set
-import Test exposing (..)
-import Trie exposing (Trie)
+import Fuzz exposing (Fuzzer)
+import Set exposing (Set)
+import Test exposing (Test, fuzz)
 
 
-type alias IDict comparable v dict =
+type alias IDict comparable v dict b =
     { empty : dict
     , singleton : comparable -> v -> dict
-    , get : comparable -> dict -> Maybe v
     , insert : comparable -> v -> dict -> dict
+    , update : comparable -> (Maybe v -> Maybe v) -> dict -> dict
+    , remove : comparable -> dict -> dict
+    , isEmpty : dict -> Bool
+    , member : comparable -> dict -> Bool
+    , get : comparable -> dict -> Maybe v
+    , size : dict -> Int
+    , keys : dict -> List comparable
+    , values : dict -> List v
+    , toList : dict -> List ( comparable, v )
+    , fromList : List ( comparable, v ) -> dict
+
+    --, map : (comparable -> v -> b) -> dict -> dict
+    , foldl : (comparable -> v -> b -> b) -> b -> dict -> b
+    , foldr : (comparable -> v -> b -> b) -> b -> dict -> b
+    , filter : (comparable -> v -> Bool) -> dict -> dict
+    , partition : (comparable -> v -> Bool) -> dict -> ( dict, dict )
+    , union : dict -> dict -> dict
+    , intersect : dict -> dict -> dict
+    , diff : dict -> dict -> dict
+
+    -- , merge :
+    --     (comparable -> v -> result -> result)
+    --     -> (comparable -> v -> b -> result -> result)
+    --     -> (comparable -> b -> result -> result)
+    --     -> dict
+    --     -> dict
+    --     -> result
+    --     -> result
     }
 
 
-emptyIsEmpty : String -> IDict comparable a dict -> Test
+emptyIsEmpty : String -> IDict comparable a dict b -> Test
 emptyIsEmpty implName dictImpl =
     let
         test () =
-            Trie.empty |> Trie.isEmpty |> Expect.true "not empty"
+            dictImpl.empty |> dictImpl.isEmpty |> Expect.true "not empty"
     in
     Test.test "Check empty trie reports isEmpty." test
 
 
-emptyContainsNoVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+emptyContainsNoVal : String -> String -> Fuzzer String -> IDict String String dict b -> Test
 emptyContainsNoVal fuzzName implName fuzzer dictImpl =
     let
         test val =
-            Trie.empty |> Trie.get val |> Expect.equal Nothing
+            dictImpl.empty |> dictImpl.get val |> Expect.equal Nothing
     in
     fuzz fuzzer ("Checks an empty " ++ implName ++ " does not get any keys (" ++ fuzzName ++ ").") test
 
 
-nonEmptyIsNotEmpty : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+nonEmptyIsNotEmpty : String -> String -> Fuzzer (List String) -> IDict String String dict b -> Test
 nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -61,8 +86,8 @@ nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                        |> Trie.isEmpty
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.isEmpty
                         |> Expect.false "empty"
     in
     fuzz fuzzer
@@ -70,40 +95,40 @@ nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
         test
 
 
-singletonContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+singletonContainsVal : String -> String -> Fuzzer String -> IDict String String dict b -> Test
 singletonContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
-            Trie.singleton val val |> Trie.get val |> Expect.equal (Just val)
+            dictImpl.singleton val val |> dictImpl.get val |> Expect.equal (Just val)
     in
     fuzz fuzzer
         ("Creates singleton " ++ implName ++ " (" ++ fuzzName ++ ").")
         test
 
 
-singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b -> Test
 singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
-            Trie.singleton "" val |> Trie.get "" |> Expect.equal (Just val)
+            dictImpl.singleton "" val |> dictImpl.get "" |> Expect.equal (Just val)
     in
     fuzz fuzzer
         ("Creates singleton " ++ implName ++ " with the empty string as key (" ++ fuzzName ++ ").")
         test
 
 
-emptyInsertStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+emptyInsertStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b -> Test
 emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
-            Trie.empty |> Trie.insert val val |> Trie.get val |> Expect.equal (Just val)
+            dictImpl.empty |> dictImpl.insert val val |> dictImpl.get val |> Expect.equal (Just val)
     in
     fuzz fuzzer
         ("Creates " ++ implName ++ " by inserting to empty (" ++ fuzzName ++ ").")
         test
 
 
-listOfValsContainsAllVals : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsContainsAllVals : String -> String -> Fuzzer (List String) -> IDict String String dict b -> Test
 listOfValsContainsAllVals fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -120,17 +145,17 @@ listOfValsContainsAllVals fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsReportsSizeOk : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsReportsSizeOk : String -> String -> Fuzzer (List String) -> IDict String String dict b -> Test
 listOfValsReportsSizeOk fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
                 [] ->
-                    Expect.equal 0 (Trie.size Trie.empty)
+                    Expect.equal 0 (dictImpl.size dictImpl.empty)
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                        |> Trie.size
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.size
                         |> Expect.equal (Set.size (Set.fromList vals))
     in
     fuzz fuzzer
@@ -138,13 +163,13 @@ listOfValsReportsSizeOk fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfNumsDoubledAllEven : String -> String -> Fuzzer (List Int) -> IDict String Int dict -> Test
+listOfNumsDoubledAllEven : String -> String -> Fuzzer (List Int) -> IDict String Int dict b -> Test
 listOfNumsDoubledAllEven fuzzName implName fuzzer dictImpl =
     let
         doubleOdd keys trie =
             List.foldl
                 (\key accum ->
-                    Trie.update (String.fromInt key)
+                    dictImpl.update (String.fromInt key)
                         (\maybeVal ->
                             case maybeVal of
                                 Nothing ->
@@ -176,16 +201,16 @@ listOfNumsDoubledAllEven fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert (String.fromInt val) val trie) Trie.empty vals
+                    List.foldl (\val trie -> dictImpl.insert (String.fromInt val) val trie) dictImpl.empty vals
                         |> doubleOdd vals
-                        |> Expect.all (List.map (\val trie -> Trie.get (String.fromInt val) trie |> expectJustEven) vals)
+                        |> Expect.all (List.map (\val trie -> dictImpl.get (String.fromInt val) trie |> expectJustEven) vals)
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with a list of numbers, then updates to double all numbers that are odd, and checks all vals are even (" ++ fuzzName ++ ").")
         test
 
 
-listOfValsAllKeysMembers : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsAllKeysMembers : String -> String -> Fuzzer (List String) -> IDict String String dict b -> Test
 listOfValsAllKeysMembers fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -194,19 +219,19 @@ listOfValsAllKeysMembers fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                        |> (\trie -> Expect.all (List.map (\val list -> Trie.member val trie |> Expect.true "not member of trie") vals) trie)
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> (\trie -> Expect.all (List.map (\val list -> dictImpl.member val trie |> Expect.true "not member of trie") vals) trie)
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with a list of vals and ensures all keys are members (" ++ fuzzName ++ ").")
         test
 
 
-listOfValsRemovedContainsNone : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsRemovedContainsNone : String -> String -> Fuzzer (List String) -> IDict String String dict b -> Test
 listOfValsRemovedContainsNone fuzzName implName fuzzer dictImpl =
     let
         removeAll keys trie =
-            List.foldl (\key accum -> Trie.remove key accum) trie keys
+            List.foldl (\key accum -> dictImpl.remove key accum) trie keys
 
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -214,16 +239,16 @@ listOfValsRemovedContainsNone fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
                         |> removeAll vals
-                        |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal Nothing) vals)
+                        |> Expect.all (List.map (\val trie -> dictImpl.get val trie |> Expect.equal Nothing) vals)
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with a list of vals, removes all, and checks none are present (" ++ fuzzName ++ ").")
         test
 
 
-listOfValsListsAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsListsAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict b -> Test
 listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -232,8 +257,8 @@ listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                        |> Trie.keys
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.keys
                         |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
     in
     fuzz fuzzer
@@ -241,7 +266,7 @@ listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsListsAllValues : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsListsAllValues : String -> String -> Fuzzer (List String) -> IDict String String dict b -> Test
 listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -250,8 +275,8 @@ listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                        |> Trie.values
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.values
                         |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
     in
     fuzz fuzzer
@@ -259,7 +284,7 @@ listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsFoldlAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsFoldlAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict (Set String) -> Test
 listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -268,8 +293,8 @@ listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                        |> Trie.foldl (\k _ accum -> Set.insert k accum) Set.empty
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.foldl (\k _ accum -> Set.insert k accum) Set.empty
                         |> Expect.all (List.map (\val list -> Set.member val list |> Expect.true "not member of foldl keys") vals)
     in
     fuzz fuzzer
@@ -277,7 +302,7 @@ listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsFoldrAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsFoldrAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict (Set String) -> Test
 listOfValsFoldrAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -286,8 +311,8 @@ listOfValsFoldrAllKeys fuzzName implName fuzzer dictImpl =
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
-                        |> Trie.foldr (\k _ accum -> Set.insert k accum) Set.empty
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.foldr (\k _ accum -> Set.insert k accum) Set.empty
                         |> Expect.all (List.map (\val list -> Set.member val list |> Expect.true "not member of foldl keys") vals)
     in
     fuzz fuzzer

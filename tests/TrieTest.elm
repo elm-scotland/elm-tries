@@ -9,12 +9,30 @@ import Test exposing (..)
 import Trie exposing (Trie)
 
 
-trie : IDict String a (Trie a)
+trie : IDict String a (Trie a) b
 trie =
     { empty = Trie.empty
     , singleton = Trie.singleton
-    , get = Trie.get
     , insert = Trie.insert
+    , update = Trie.update
+    , remove = Trie.remove
+    , isEmpty = Trie.isEmpty
+    , member = Trie.member
+    , get = Trie.get
+    , size = Trie.size
+    , keys = Trie.keys
+    , values = Trie.values
+    , toList = Trie.toList
+    , fromList = Trie.fromList
+
+    --, map = Trie.map
+    , foldl = Trie.foldl
+    , foldr = Trie.foldr
+    , filter = Trie.filter
+    , partition = Trie.partition
+    , union = Trie.union
+    , intersect = Trie.intersect
+    , diff = Trie.diff
     }
 
 
