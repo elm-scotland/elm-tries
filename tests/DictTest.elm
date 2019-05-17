@@ -45,19 +45,12 @@ suite =
         , DictIface.singletonEmptyStringContainsVal "string" " dict" string dict
         , DictIface.listOfNumsDoubledAllEven "list int" " dict" (list int) dict
         , DictIface.listOfValsAllKeysMembers "list string" " dict" (list string) dict
-        , DictIface.listOfValsAllKeysMembers "list suffixString" " dict" (list suffixString) dict
         , DictIface.listOfValsContainsAllVals "list string" " dict" (list string) dict
-        , DictIface.listOfValsContainsAllVals "list suffixString" " dict" (list suffixString) dict
         , DictIface.listOfValsFoldlAllKeys "list string" " dict" (list string) dict
-        , DictIface.listOfValsFoldlAllKeys "list suffixString" " dict" (list suffixString) dict
         , DictIface.listOfValsFoldrAllKeys "list string" " dict" (list string) dict
-        , DictIface.listOfValsFoldrAllKeys "list suffixString" " dict" (list suffixString) dict
         , DictIface.listOfValsListsAllKeys "list string" " dict" (list string) dict
-        , DictIface.listOfValsListsAllKeys "list suffixString" " dict" (list suffixString) dict
         , DictIface.listOfValsListsAllValues "list string" " dict" (list string) dict
-        , DictIface.listOfValsListsAllValues "list suffixString" " dict" (list suffixString) dict
         , DictIface.listOfValsRemovedContainsNone "list string" " dict" (list string) dict
-        , DictIface.listOfValsRemovedContainsNone "list suffixString" " dict" (list suffixString) dict
         , DictIface.listOfValsReportsSizeOk "list string" " dict" (list string) dict
         , DictIface.listOfValsReportsSizeOk "list <| longString 10" " dict" (list <| longString 10) dict
         ]
