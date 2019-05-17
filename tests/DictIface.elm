@@ -34,8 +34,8 @@ type alias IDict comparable v dict =
     }
 
 
-emptyContainsNoVal : Test
-emptyContainsNoVal =
+emptyContainsNoVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+emptyContainsNoVal fuzzName implName fuzzer dictImpl =
     describe "emptyContainsNoVal"
         [ fuzz string "Checks an empty trie does not get any keys." <|
             \val ->
@@ -51,8 +51,8 @@ emptyIsEmpty =
         ]
 
 
-nonEmptyIsNotEmpty : Test
-nonEmptyIsNotEmpty =
+nonEmptyIsNotEmpty : String -> String -> Fuzzer String -> IDict String String dict -> Test
+nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -74,8 +74,8 @@ nonEmptyIsNotEmpty =
         ]
 
 
-singletonContainsVal : Test
-singletonContainsVal =
+singletonContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+singletonContainsVal fuzzName implName fuzzer dictImpl =
     describe "singletonContainsVal"
         [ fuzz string "Creates singleton tries." <|
             \val ->
@@ -83,8 +83,8 @@ singletonContainsVal =
         ]
 
 
-singletonEmptyStringContainsVal : Test
-singletonEmptyStringContainsVal =
+singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
     describe "singletonEmptyStringContainsVal"
         [ fuzz string "Creates singleton tries with the empty string as key." <|
             \val ->
@@ -92,8 +92,8 @@ singletonEmptyStringContainsVal =
         ]
 
 
-emptyInsertStringContainsVal : Test
-emptyInsertStringContainsVal =
+emptyInsertStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
+emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
     describe "emptyInsertStringContainsVal"
         [ fuzz string "Creates tries by inserting to empty." <|
             \val ->
@@ -118,8 +118,8 @@ listOfValsContainsAllVals fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsReportsSizeOk : Test
-listOfValsReportsSizeOk =
+listOfValsReportsSizeOk : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsReportsSizeOk fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -131,18 +131,13 @@ listOfValsReportsSizeOk =
                         |> Trie.size
                         |> Expect.equal (Set.size (Set.fromList vals))
     in
-    describe "listOfValsReportsSizeOk"
-        [ fuzz (list string)
-            "Creates a trie with a list of vals and checks it has the correct size (list string)."
-            test
-        , fuzz (list <| longString 10)
-            "Creates a trie with a list of vals and checks it has the correct size (list <| longString 10)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " trie with a list of vals and checks it has the correct size (" ++ fuzzName ++ ").")
+        test
 
 
-listOfNumsDoubledAllEven : Test
-listOfNumsDoubledAllEven =
+listOfNumsDoubledAllEven : String -> String -> Fuzzer (List Int) -> IDict String Int dict -> Test
+listOfNumsDoubledAllEven fuzzName implName fuzzer dictImpl =
     let
         doubleOdd keys trie =
             List.foldl
@@ -183,15 +178,13 @@ listOfNumsDoubledAllEven =
                         |> doubleOdd vals
                         |> Expect.all (List.map (\val trie -> Trie.get (String.fromInt val) trie |> expectJustEven) vals)
     in
-    describe "listOfNumsDoubledAllEven"
-        [ fuzz (list int)
-            "Creates a trie with a list of numbers, then updates to double all numbers that are odd, and checks all vals are even."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of numbers, then updates to double all numbers that are odd, and checks all vals are even (" ++ fuzzName ++ ").")
+        test
 
 
-listOfValsAllKeysMembers : Test
-listOfValsAllKeysMembers =
+listOfValsAllKeysMembers : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsAllKeysMembers fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -202,18 +195,13 @@ listOfValsAllKeysMembers =
                     List.foldl (\val trie -> Trie.insert val val trie) Trie.empty vals
                         |> (\trie -> Expect.all (List.map (\val list -> Trie.member val trie |> Expect.true "not member of trie") vals) trie)
     in
-    describe "listOfValsAllKeysMembers"
-        [ fuzz (list string)
-            "Creates a trie with a list of vals and ensures all keys are members (list string)."
-            test
-        , fuzz (list suffixString)
-            "Creates a trie with a list of vals and ensures all keys are members (list suffixString)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals and ensures all keys are members (" ++ fuzzName ++ ").")
+        test
 
 
-listOfValsRemovedContainsNone : Test
-listOfValsRemovedContainsNone =
+listOfValsRemovedContainsNone : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsRemovedContainsNone fuzzName implName fuzzer dictImpl =
     let
         removeAll keys trie =
             List.foldl (\key accum -> Trie.remove key accum) trie keys
@@ -228,18 +216,13 @@ listOfValsRemovedContainsNone =
                         |> removeAll vals
                         |> Expect.all (List.map (\val trie -> Trie.get val trie |> Expect.equal Nothing) vals)
     in
-    describe "listOfValsRemovedContainsNone"
-        [ fuzz (list string)
-            "Creates a trie with a list of vals, removes all, and checks none are present (list string)."
-            test
-        , fuzz (list suffixString)
-            "Creates a trie with a list of vals, removes all, and checks none are present (list suffixString)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals, removes all, and checks none are present (" ++ fuzzName ++ ").")
+        test
 
 
-listOfValsListsAllKeys : Test
-listOfValsListsAllKeys =
+listOfValsListsAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -251,18 +234,13 @@ listOfValsListsAllKeys =
                         |> Trie.keys
                         |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
     in
-    describe "listOfValsListsAllKeys"
-        [ fuzz (list string)
-            "Creates a trie with a list of vals and ensures lists all of them as keys (list string)."
-            test
-        , fuzz (list suffixString)
-            "Creates a trie with a list of vals and ensures lists all of them as keys (list suffixString)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals and ensures lists all of them as keys (" ++ fuzzName ++ ").")
+        test
 
 
-listOfValsListsAllValues : Test
-listOfValsListsAllValues =
+listOfValsListsAllValues : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -274,18 +252,13 @@ listOfValsListsAllValues =
                         |> Trie.values
                         |> Expect.all (List.map (\val list -> List.member val list |> Expect.true "not member of keys") vals)
     in
-    describe "listOfValsListsAllValues"
-        [ fuzz (list string)
-            "Creates a trie with a list of vals and ensures lists all of them as values (list string)."
-            test
-        , fuzz (list suffixString)
-            "Creates a trie with a list of vals and ensures lists all of them as values (list suffixString)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals and ensures lists all of them as values (" ++ fuzzName ++ ").")
+        test
 
 
-listOfValsFoldlAllKeys : Test
-listOfValsFoldlAllKeys =
+listOfValsFoldlAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -297,18 +270,13 @@ listOfValsFoldlAllKeys =
                         |> Trie.foldl (\k _ accum -> Set.insert k accum) Set.empty
                         |> Expect.all (List.map (\val list -> Set.member val list |> Expect.true "not member of foldl keys") vals)
     in
-    describe "listOfValsFoldlAllKeys"
-        [ fuzz (list string)
-            "Creates a trie with a list of vals and folds it left, checking all keys are gathered in the fold (list string)."
-            test
-        , fuzz (list suffixString)
-            "Creates a trie with a list of vals and folds it left, checking all keys are gathered in the fold (list suffixString)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals and folds it left, checking all keys are gathered in the fold (" ++ fuzzName ++ ").")
+        test
 
 
-listOfValsFoldrAllKeys : Test
-listOfValsFoldrAllKeys =
+listOfValsFoldrAllKeys : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
+listOfValsFoldrAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
             case possiblyEmptyVals of
@@ -320,11 +288,6 @@ listOfValsFoldrAllKeys =
                         |> Trie.foldr (\k _ accum -> Set.insert k accum) Set.empty
                         |> Expect.all (List.map (\val list -> Set.member val list |> Expect.true "not member of foldl keys") vals)
     in
-    describe "listOfValsFoldrAllKeys"
-        [ fuzz (list string)
-            "Creates a trie with a list of vals and folds it right, checking all keys are gathered in the fold (list string)."
-            test
-        , fuzz (list suffixString)
-            "Creates a trie with a list of vals and folds it right, checking all keys are gathered in the fold (list suffixString)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals and folds it right, checking all keys are gathered in the fold (" ++ fuzzName ++ ").")
+        test
