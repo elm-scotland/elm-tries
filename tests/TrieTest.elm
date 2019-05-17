@@ -14,14 +14,39 @@ module TrieTest exposing
     , nonEmptyIsNotEmpty
     , singletonContainsVal
     , singletonEmptyStringContainsVal
+    , suite
     )
 
+import DictIface exposing (IDict)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Fuzzers exposing (..)
 import Set
 import Test exposing (..)
 import Trie
+
+
+trieDict : IDict String a (Trie.Trie a)
+trieDict =
+    { empty = Trie.empty
+    , singleton = Trie.singleton
+    , get = Trie.get
+    , insert = Trie.insert
+    }
+
+
+suite =
+    describe "Trie tests"
+        [ DictIface.listOfValsContainsAllVals "list string" "trieDict" (list string) trieDict
+        , DictIface.listOfValsContainsAllVals "list suffixString" "trieDict" (list suffixString) trieDict
+
+        -- fuzz (list string)
+        --     "Creates a trie with a list of vals and ensures it contains all of them (list string)."
+        --     (listOfValsContainsAllVals trieDict)
+        -- , fuzz (list suffixString)
+        --     "Creates a trie with a list of vals and ensures it contains all of them (list suffixString)."
+        --     (listOfValsContainsAllVals trieDict)
+        ]
 
 
 emptyContainsNoVal : Test
