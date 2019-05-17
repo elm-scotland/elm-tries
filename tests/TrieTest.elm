@@ -7,7 +7,7 @@ import Test exposing (Test, describe)
 import Trie exposing (Trie)
 
 
-trie : IDict String a (Trie a) b
+trie : IDict String a (Trie a) b (Trie b)
 trie =
     { empty = Trie.empty
     , singleton = Trie.singleton
@@ -22,8 +22,7 @@ trie =
     , values = Trie.values
     , toList = Trie.toList
     , fromList = Trie.fromList
-
-    --, map = Trie.map
+    , map = Trie.map
     , foldl = Trie.foldl
     , foldr = Trie.foldr
     , filter = Trie.filter

@@ -7,7 +7,7 @@ import Fuzzers exposing (longString, suffixString)
 import Test exposing (Test, describe)
 
 
-dict : IDict comparable v (Dict comparable v) b
+dict : IDict comparable v (Dict comparable v) b (Dict comparable b)
 dict =
     { empty = Dict.empty
     , singleton = Dict.singleton
@@ -22,8 +22,7 @@ dict =
     , values = Dict.values
     , toList = Dict.toList
     , fromList = Dict.fromList
-
-    --, map =  Dict.map
+    , map = Dict.map
     , foldl = Dict.foldl
     , foldr = Dict.foldr
     , filter = Dict.filter
