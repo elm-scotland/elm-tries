@@ -1,4 +1,4 @@
-module DictIface exposing (listOfValsContainsAllVals)
+module DictIface exposing (suite)
 
 import Dict exposing (Dict)
 import Expect exposing (Expectation)
@@ -50,33 +50,28 @@ suffixString =
         |> Fuzz.map (String.concat >> String.left 10)
 
 
-test1 : Test
-test1 =
-    listOfValsContainsAllVals trieDict
-
-
-test2 : Test
-test2 =
-    listOfValsContainsAllVals dict
-
-
-listOfValsContainsAllVals : IDict String String dict -> Test
-listOfValsContainsAllVals dictImpl =
-    let
-        test possiblyEmptyVals =
-            case possiblyEmptyVals of
-                [] ->
-                    Expect.equal [] []
-
-                vals ->
-                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
-                        |> Expect.all (List.map (\val trie -> dictImpl.get val trie |> Expect.equal (Just val)) vals)
-    in
+suite =
     describe "listOfValsContainsAllVals"
         [ fuzz (list string)
             "Creates a trie with a list of vals and ensures it contains all of them (list string)."
-            test
+            (listOfValsContainsAllVals trieDict)
         , fuzz (list suffixString)
             "Creates a trie with a list of vals and ensures it contains all of them (list suffixString)."
-            test
+            (listOfValsContainsAllVals trieDict)
+        , fuzz (list string)
+            "Creates a dict with a list of vals and ensures it contains all of them (list string)."
+            (listOfValsContainsAllVals dict)
+        , fuzz (list suffixString)
+            "Creates a dict with a list of vals and ensures it contains all of them (list suffixString)."
+            (listOfValsContainsAllVals dict)
         ]
+
+
+listOfValsContainsAllVals dictImpl possiblyEmptyVals =
+    case possiblyEmptyVals of
+        [] ->
+            Expect.equal [] []
+
+        vals ->
+            List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                |> Expect.all (List.map (\val trie -> dictImpl.get val trie |> Expect.equal (Just val)) vals)
