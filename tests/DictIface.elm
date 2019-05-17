@@ -34,24 +34,25 @@ type alias IDict comparable v dict =
     }
 
 
+emptyIsEmpty : String -> IDict comparable a dict -> Test
+emptyIsEmpty implName dictImpl =
+    let
+        test () =
+            Trie.empty |> Trie.isEmpty |> Expect.true "not empty"
+    in
+    Test.test "Check empty trie reports isEmpty." test
+
+
 emptyContainsNoVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
 emptyContainsNoVal fuzzName implName fuzzer dictImpl =
-    describe "emptyContainsNoVal"
-        [ fuzz string "Checks an empty trie does not get any keys." <|
-            \val ->
-                Trie.empty |> Trie.get val |> Expect.equal Nothing
-        ]
+    let
+        test val =
+            Trie.empty |> Trie.get val |> Expect.equal Nothing
+    in
+    fuzz fuzzer ("Checks an empty " ++ implName ++ " does not get any keys (" ++ fuzzName ++ ").") test
 
 
-emptyIsEmpty : Test
-emptyIsEmpty =
-    describe "emptyIsEmpty"
-        [ test "Check empty trie reports isEmpty." <|
-            \() -> Trie.empty |> Trie.isEmpty |> Expect.true "not empty"
-        ]
-
-
-nonEmptyIsNotEmpty : String -> String -> Fuzzer String -> IDict String String dict -> Test
+nonEmptyIsNotEmpty : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test
 nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -64,41 +65,42 @@ nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
                         |> Trie.isEmpty
                         |> Expect.false "empty"
     in
-    describe "nonEmptyIsNotEmpty"
-        [ fuzz (list string)
-            "Creates a trie and checks if it is non-empty that it reports it is not empty (list string)."
-            test
-        , fuzz (list suffixString)
-            "Creates a trie and checks if it is non-empty that it reports it is not empty (list suffixString)."
-            test
-        ]
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " and checks if it is non-empty that it reports it is not empty (" ++ fuzzName ++ ").")
+        test
 
 
 singletonContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
 singletonContainsVal fuzzName implName fuzzer dictImpl =
-    describe "singletonContainsVal"
-        [ fuzz string "Creates singleton tries." <|
-            \val ->
-                Trie.singleton val val |> Trie.get val |> Expect.equal (Just val)
-        ]
+    let
+        test val =
+            Trie.singleton val val |> Trie.get val |> Expect.equal (Just val)
+    in
+    fuzz fuzzer
+        ("Creates singleton " ++ implName ++ " (" ++ fuzzName ++ ").")
+        test
 
 
 singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
 singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
-    describe "singletonEmptyStringContainsVal"
-        [ fuzz string "Creates singleton tries with the empty string as key." <|
-            \val ->
-                Trie.singleton "" val |> Trie.get "" |> Expect.equal (Just val)
-        ]
+    let
+        test val =
+            Trie.singleton "" val |> Trie.get "" |> Expect.equal (Just val)
+    in
+    fuzz fuzzer
+        ("Creates singleton " ++ implName ++ " with the empty string as key (" ++ fuzzName ++ ").")
+        test
 
 
 emptyInsertStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict -> Test
 emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
-    describe "emptyInsertStringContainsVal"
-        [ fuzz string "Creates tries by inserting to empty." <|
-            \val ->
-                Trie.empty |> Trie.insert val val |> Trie.get val |> Expect.equal (Just val)
-        ]
+    let
+        test val =
+            Trie.empty |> Trie.insert val val |> Trie.get val |> Expect.equal (Just val)
+    in
+    fuzz fuzzer
+        ("Creates " ++ implName ++ " by inserting to empty (" ++ fuzzName ++ ").")
+        test
 
 
 listOfValsContainsAllVals : String -> String -> Fuzzer (List String) -> IDict String String dict -> Test

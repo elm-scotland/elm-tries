@@ -21,7 +21,13 @@ trie =
 suite : Test
 suite =
     describe "Trie tests"
-        [ DictIface.listOfNumsDoubledAllEven "list int" "trie" (list int) trie
+        [ DictIface.emptyIsEmpty "trie" trie
+        , DictIface.emptyContainsNoVal "string" "trie" string trie
+        , DictIface.emptyInsertStringContainsVal "string" "trie" string trie
+        , DictIface.nonEmptyIsNotEmpty "list string" "trie" (list string) trie
+        , DictIface.singletonContainsVal "string" "trie" string trie
+        , DictIface.singletonEmptyStringContainsVal "string" "trie" string trie
+        , DictIface.listOfNumsDoubledAllEven "list int" "trie" (list int) trie
         , DictIface.listOfValsAllKeysMembers "list string" "trie" (list string) trie
         , DictIface.listOfValsAllKeysMembers "list suffixString" "trie" (list suffixString) trie
         , DictIface.listOfValsContainsAllVals "list string" "trie" (list string) trie
