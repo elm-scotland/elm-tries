@@ -136,24 +136,17 @@ fromList assocs =
 
 map : (String -> a -> b) -> Trie a -> Trie b
 map fn trie =
-    mapChars (\chars -> fn <| String.fromList (List.reverse chars)) [] trie
+    mapInner (\chars -> fn <| String.fromList (List.reverse chars)) [] trie
 
 
 foldl : (String -> a -> b -> b) -> b -> Trie a -> b
 foldl fn accum trie =
-    foldlChars (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
+    foldlInner (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
 
 
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
 foldr fn accum trie =
-    foldrChars (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
-
-
-foldrChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
-foldrChars fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
-        [ ( ( [], trie ), isJust maybeValue ) ]
-        |> foldSearchGoals fn accum
+    foldrInner (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
@@ -355,19 +348,26 @@ getInner key trie =
                     getInner tail subTrie
 
 
-mapChars : (List Char -> a -> b) -> List Char -> Trie a -> Trie b
-mapChars fn keyAccum ((Trie maybeValue dict) as trie) =
+mapInner : (List Char -> a -> b) -> List Char -> Trie a -> Trie b
+mapInner fn keyAccum ((Trie maybeValue dict) as trie) =
     case maybeValue of
         Nothing ->
-            Trie Nothing (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
+            Trie Nothing (Dict.map (\key innerTrie -> mapInner fn (key :: keyAccum) innerTrie) dict)
 
         Just value ->
-            Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> mapChars fn (key :: keyAccum) innerTrie) dict)
+            Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> mapInner fn (key :: keyAccum) innerTrie) dict)
 
 
-foldlChars : (List Char -> a -> b -> b) -> b -> Trie a -> b
-foldlChars fn accum ((Trie maybeValue _) as trie) =
+foldlInner : (List Char -> a -> b -> b) -> b -> Trie a -> b
+foldlInner fn accum ((Trie maybeValue _) as trie) =
     Search.depthFirst { step = wildcardStepl, cost = \_ -> 1.0 }
+        [ ( ( [], trie ), isJust maybeValue ) ]
+        |> foldSearchGoals fn accum
+
+
+foldrInner : (List Char -> a -> b -> b) -> b -> Trie a -> b
+foldrInner fn accum ((Trie maybeValue _) as trie) =
+    Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
         [ ( ( [], trie ), isJust maybeValue ) ]
         |> foldSearchGoals fn accum
 
