@@ -1,4 +1,4 @@
-module Example exposing
+module TrieTest exposing
     ( emptyContainsNoVal
     , emptyInsertStringContainsVal
     , emptyIsEmpty
