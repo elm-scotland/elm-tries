@@ -36,7 +36,7 @@ trie =
 
 suite : Test
 suite =
-    describe "Trie tests"
+    describe "StringTrie tests"
         [ DictIface.emptyIsEmpty "trie" trie
         , DictIface.emptyContainsNoVal "string" "trie" string trie
         , DictIface.emptyInsertStringContainsVal "string" "trie" string trie
