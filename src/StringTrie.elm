@@ -1,5 +1,5 @@
-module Trie exposing
-    ( Trie(..)
+module StringTrie exposing
+    ( Trie
     , empty, singleton, insert, update, remove
     , isEmpty, member, get, size
     , keys, values, toList, fromList
@@ -47,16 +47,17 @@ module Trie exposing
 
 -}
 
+import Dict exposing (Dict)
 import Trie
 
 
 type alias Trie a =
-    Trie.Trie a
+    Trie.Trie String a
 
 
 empty : Trie a
 empty =
-    Trie Nothing Dict.empty
+    Trie.empty
 
 
 singleton : String -> a -> Trie a
