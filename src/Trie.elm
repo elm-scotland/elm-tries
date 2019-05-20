@@ -53,8 +53,8 @@ import Search
 
 
 -- Ideas
--- expandIgnoreCase : String -> Trie comparable a -> List String
--- matchesIgnoreCase : String -> Trie comparable a -> Bool
+-- expandIgnoreCase : (List comparable) -> Trie comparable a -> List (List comparable)
+-- matchesIgnoreCase : (List comparable) -> Trie comparable a -> Bool
 -- match : (List Char -> Char -> a -> Bool) -> Trie comparable a -> Bool
 -- match _ _ =
 --     Debug.todo "map"
@@ -147,6 +147,21 @@ remove key trie =
                 )
 
 
+isEmpty : Trie comparable a -> Bool
+isEmpty trie =
+    size trie == 0
+
+
+member : List comparable -> Trie comparable a -> Bool
+member key trie =
+    case subtrie key trie of
+        Nothing ->
+            False
+
+        Just (Trie maybeValue _) ->
+            isJust maybeValue
+
+
 get : List comparable -> Trie comparable a -> Maybe a
 get key trie =
     case ( key, trie ) of
@@ -164,6 +179,31 @@ get key trie =
 
                 Just subTrie ->
                     get tail subTrie
+
+
+size : Trie comparable a -> Int
+size trie =
+    foldr (\_ _ accum -> accum + 1) 0 trie
+
+
+keys : Trie comparable a -> List (List comparable)
+keys trie =
+    foldr (\key value keyList -> key :: keyList) [] trie
+
+
+values : Trie comparable a -> List a
+values trie =
+    foldr (\key value valueList -> value :: valueList) [] trie
+
+
+toList : Trie comparable a -> List ( List comparable, a )
+toList trie =
+    foldr (\key value list -> ( key, value ) :: list) [] trie
+
+
+fromList : List ( List comparable, a ) -> Trie comparable a
+fromList assocs =
+    List.foldl (\( key, value ) dict -> insert key value dict) empty assocs
 
 
 map : (List comparable -> a -> b) -> List comparable -> Trie comparable a -> Trie comparable b
@@ -188,6 +228,99 @@ foldr fn accum ((Trie maybeValue _) as trie) =
     Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
         [ ( ( [], trie ), isJust maybeValue ) ]
         |> foldSearchGoals fn accum
+
+
+filter : (List comparable -> a -> Bool) -> Trie comparable a -> Trie comparable a
+filter isGood trie =
+    foldl
+        (\k v d ->
+            if isGood k v then
+                insert k v d
+
+            else
+                d
+        )
+        empty
+        trie
+
+
+partition : (List comparable -> a -> Bool) -> Trie comparable a -> ( Trie comparable a, Trie comparable a )
+partition isGood trie =
+    let
+        add key value ( t1, t2 ) =
+            if isGood key value then
+                ( insert key value t1, t2 )
+
+            else
+                ( t1, insert key value t2 )
+    in
+    foldl add ( empty, empty ) trie
+
+
+union : Trie comparable a -> Trie comparable a -> Trie comparable a
+union t1 t2 =
+    foldl insert t2 t1
+
+
+intersect : Trie comparable a -> Trie comparable a -> Trie comparable a
+intersect t1 t2 =
+    filter (\k _ -> member k t2) t1
+
+
+diff : Trie comparable a -> Trie comparable b -> Trie comparable a
+diff t1 t2 =
+    foldl (\k v t -> remove k t) t1 t2
+
+
+merge :
+    (List comparable -> a -> result -> result)
+    -> (List comparable -> a -> b -> result -> result)
+    -> (List comparable -> b -> result -> result)
+    -> Trie comparable a
+    -> Trie comparable b
+    -> result
+    -> result
+merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
+    let
+        stepState rKey rValue ( list, result ) =
+            case list of
+                [] ->
+                    ( list, rightStep rKey rValue result )
+
+                ( lKey, lValue ) :: rest ->
+                    if lKey < rKey then
+                        stepState rKey rValue ( rest, leftStep lKey lValue result )
+
+                    else if lKey > rKey then
+                        ( list, rightStep rKey rValue result )
+
+                    else
+                        ( rest, bothStep lKey lValue rValue result )
+
+        ( leftovers, intermediateResult ) =
+            foldl stepState ( toList leftTrie, initialResult ) rightTrie
+    in
+    List.foldl (\( k, v ) result -> leftStep k v result) intermediateResult leftovers
+
+
+expand : List comparable -> Trie comparable a -> List (List comparable)
+expand key trie =
+    case subtrie key trie of
+        Nothing ->
+            []
+
+        Just innerTrie ->
+            foldr (\innerKey _ accum -> (key ++ innerKey) :: accum) [] innerTrie
+
+
+matches : List comparable -> Trie comparable a -> Bool
+matches key trie =
+    case subtrie key trie of
+        Nothing ->
+            False
+
+        Just (Trie maybeValue _) ->
+            isJust maybeValue
 
 
 subtrie : List comparable -> Trie comparable a -> Maybe (Trie comparable a)
