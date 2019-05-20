@@ -206,14 +206,19 @@ fromList assocs =
     List.foldl (\( key, value ) dict -> insert key value dict) empty assocs
 
 
-map : (List comparable -> a -> b) -> List comparable -> Trie comparable a -> Trie comparable b
-map fn keyAccum ((Trie maybeValue dict) as trie) =
+map : (List comparable -> a -> b) -> Trie comparable a -> Trie comparable b
+map fn trie =
+    mapInner (\chars -> fn <| List.reverse chars) [] trie
+
+
+mapInner : (List comparable -> a -> b) -> List comparable -> Trie comparable a -> Trie comparable b
+mapInner fn keyAccum ((Trie maybeValue dict) as trie) =
     case maybeValue of
         Nothing ->
-            Trie Nothing (Dict.map (\key innerTrie -> map fn (key :: keyAccum) innerTrie) dict)
+            Trie Nothing (Dict.map (\key innerTrie -> mapInner fn (key :: keyAccum) innerTrie) dict)
 
         Just value ->
-            Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> map fn (key :: keyAccum) innerTrie) dict)
+            Trie (Just <| fn keyAccum value) (Dict.map (\key innerTrie -> mapInner fn (key :: keyAccum) innerTrie) dict)
 
 
 foldl : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b

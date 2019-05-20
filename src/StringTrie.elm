@@ -97,22 +97,24 @@ get key trie =
 
 size : Trie a -> Int
 size trie =
-    foldr (\_ _ accum -> accum + 1) 0 trie
+    Trie.size trie
 
 
 keys : Trie a -> List String
 keys trie =
-    foldr (\key value keyList -> key :: keyList) [] trie
+    Trie.keys trie
+        |> List.map String.fromList
 
 
 values : Trie a -> List a
 values trie =
-    foldr (\key value valueList -> value :: valueList) [] trie
+    Trie.values trie
 
 
 toList : Trie a -> List ( String, a )
 toList trie =
-    foldr (\key value list -> ( key, value ) :: list) [] trie
+    Trie.toList trie
+        |> List.map (Tuple.mapFirst String.fromList)
 
 
 fromList : List ( String, a ) -> Trie a
@@ -122,59 +124,42 @@ fromList assocs =
 
 map : (String -> a -> b) -> Trie a -> Trie b
 map fn trie =
-    mapInner (\chars -> fn <| String.fromList (List.reverse chars)) [] trie
+    Trie.map (\chars -> fn <| String.fromList chars) trie
 
 
 foldl : (String -> a -> b -> b) -> b -> Trie a -> b
 foldl fn accum trie =
-    foldlInner (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
+    Trie.foldl (\chars -> fn <| String.fromList chars) accum trie
 
 
 foldr : (String -> a -> b -> b) -> b -> Trie a -> b
 foldr fn accum trie =
-    foldrInner (\chars -> fn <| String.fromList (List.reverse chars)) accum trie
+    Trie.foldr (\chars -> fn <| String.fromList chars) accum trie
 
 
 filter : (String -> a -> Bool) -> Trie a -> Trie a
 filter isGood trie =
-    foldl
-        (\k v d ->
-            if isGood k v then
-                insert k v d
-
-            else
-                d
-        )
-        empty
-        trie
+    Trie.filter (\chars -> isGood <| String.fromList chars) trie
 
 
 partition : (String -> a -> Bool) -> Trie a -> ( Trie a, Trie a )
 partition isGood trie =
-    let
-        add key value ( t1, t2 ) =
-            if isGood key value then
-                ( insert key value t1, t2 )
-
-            else
-                ( t1, insert key value t2 )
-    in
-    foldl add ( empty, empty ) trie
+    Trie.partition (\chars -> isGood <| String.fromList chars) trie
 
 
 union : Trie a -> Trie a -> Trie a
 union t1 t2 =
-    foldl insert t2 t1
+    Trie.union t1 t2
 
 
 intersect : Trie a -> Trie a -> Trie a
 intersect t1 t2 =
-    filter (\k _ -> member k t2) t1
+    Trie.intersect t1 t2
 
 
 diff : Trie a -> Trie b -> Trie a
 diff t1 t2 =
-    foldl (\k v t -> remove k t) t1 t2
+    Trie.diff t1 t2
 
 
 merge :
@@ -186,48 +171,26 @@ merge :
     -> result
     -> result
 merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
-    let
-        stepState rKey rValue ( list, result ) =
-            case list of
-                [] ->
-                    ( list, rightStep rKey rValue result )
-
-                ( lKey, lValue ) :: rest ->
-                    if lKey < rKey then
-                        stepState rKey rValue ( rest, leftStep lKey lValue result )
-
-                    else if lKey > rKey then
-                        ( list, rightStep rKey rValue result )
-
-                    else
-                        ( rest, bothStep lKey lValue rValue result )
-
-        ( leftovers, intermediateResult ) =
-            foldl stepState ( toList leftTrie, initialResult ) rightTrie
-    in
-    List.foldl (\( k, v ) result -> leftStep k v result) intermediateResult leftovers
+    Trie.merge
+        (\chars -> leftStep <| String.fromList chars)
+        (\chars -> bothStep <| String.fromList chars)
+        (\chars -> rightStep <| String.fromList chars)
+        leftTrie
+        rightTrie
+        initialResult
 
 
 expand : String -> Trie a -> List String
 expand key trie =
-    case subtrie key trie of
-        Nothing ->
-            []
-
-        Just innerTrie ->
-            foldr (\innerKey _ accum -> (key ++ innerKey) :: accum) [] innerTrie
+    Trie.expand (String.toList key) trie
+        |> List.map String.fromList
 
 
 matches : String -> Trie a -> Bool
 matches key trie =
-    case subtrie key trie of
-        Nothing ->
-            False
-
-        Just (Trie maybeValue _) ->
-            isJust maybeValue
+    Trie.matches (String.toList key) trie
 
 
 subtrie : String -> Trie a -> Maybe (Trie a)
 subtrie key trie =
-    subtrieInner (String.toList key) trie
+    Trie.subtrie (String.toList key) trie
