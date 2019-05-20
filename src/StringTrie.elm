@@ -52,7 +52,7 @@ import Trie
 
 
 type alias Trie a =
-    Trie.Trie String a
+    Trie.Trie Char a
 
 
 empty : Trie a
@@ -62,42 +62,37 @@ empty =
 
 singleton : String -> a -> Trie a
 singleton key val =
-    singletonInner (String.toList key) val
+    Trie.singleton (String.toList key) val
 
 
 insert : String -> a -> Trie a -> Trie a
 insert key val trie =
-    insertInner (String.toList key) val trie
+    Trie.insert (String.toList key) val trie
 
 
 update : String -> (Maybe a -> Maybe a) -> Trie a -> Trie a
 update key fn trie =
-    updateInner (String.toList key) fn trie
+    Trie.update (String.toList key) fn trie
 
 
 remove : String -> Trie a -> Trie a
 remove key trie =
-    removeInner (String.toList key) trie
+    Trie.remove (String.toList key) trie
 
 
 isEmpty : Trie a -> Bool
 isEmpty trie =
-    size trie == 0
+    Trie.isEmpty trie
 
 
 member : String -> Trie a -> Bool
 member key trie =
-    case subtrie key trie of
-        Nothing ->
-            False
-
-        Just (Trie maybeValue _) ->
-            isJust maybeValue
+    Trie.member (String.toList key) trie
 
 
 get : String -> Trie a -> Maybe a
 get key trie =
-    getInner (String.toList key) trie
+    Trie.get (String.toList key) trie
 
 
 size : Trie a -> Int
