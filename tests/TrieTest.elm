@@ -3,11 +3,11 @@ module TrieTest exposing (suite)
 import DictIface exposing (IDict)
 import Fuzz exposing (int, list, string)
 import Fuzzers exposing (longString, suffixString)
+import StringTrie as Trie exposing (Trie)
 import Test exposing (Test, describe)
-import Trie exposing (Trie)
 
 
-trie : IDict String a (Trie Char a) b (Trie Char b) result
+trie : IDict String a (Trie a) b (Trie b) result
 trie =
     { empty = Trie.empty
     , singleton = Trie.singleton
