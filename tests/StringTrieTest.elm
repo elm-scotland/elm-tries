@@ -1,4 +1,4 @@
-module TrieTest exposing (suite)
+module StringTrieTest exposing (suite)
 
 import DictIface exposing (IDict)
 import Fuzz exposing (int, list, string)
