@@ -51,15 +51,6 @@ import Dict exposing (Dict)
 import Search
 
 
-
--- Ideas
--- expandIgnoreCase : (List comparable) -> Trie comparable a -> List (List comparable)
--- matchesIgnoreCase : (List comparable) -> Trie comparable a -> Bool
--- match : (List Char -> Char -> a -> Bool) -> Trie comparable a -> Bool
--- match _ _ =
---     Debug.todo "map"
-
-
 type Trie comparable a
     = Trie (Maybe a) (Dict comparable (Trie comparable a))
 
@@ -341,6 +332,57 @@ subtrie key ((Trie maybeValue dict) as trie) =
 
                 Just innerTrie ->
                     subtrie ks innerTrie
+
+
+
+-- Flexible search API
+
+
+matchWildcard : (List comparable -> Maybe a -> b -> ( b, Bool )) -> b -> Trie comparable a -> b
+matchWildcard fn accum trie =
+    match
+        (\key maybeValue ->
+            fn key maybeValue
+                >> Tuple.mapSecond
+                    (\flag ->
+                        if flag then
+                            Wildcard
+
+                        else
+                            Break
+                    )
+        )
+        accum
+        Wildcard
+        trie
+
+
+matchIf : (List comparable -> Maybe a -> b -> ( b, comparable )) -> b -> comparable -> Trie comparable a -> b
+matchIf fn accum first trie =
+    match (\key maybeValue -> fn key maybeValue >> Tuple.mapSecond (\comp -> ContinueIf comp))
+        accum
+        (ContinueIf first)
+        trie
+
+
+matchIfOneOf : (List comparable -> Maybe a -> b -> ( b, List comparable )) -> b -> List comparable -> Trie comparable a -> b
+matchIfOneOf fn accum firstList trie =
+    match (\key maybeValue -> fn key maybeValue >> Tuple.mapSecond (\list -> ContinueIfOneOf list))
+        accum
+        (ContinueIfOneOf firstList)
+        trie
+
+
+type Match comparable
+    = Break
+    | Wildcard
+    | ContinueIf comparable
+    | ContinueIfOneOf (List comparable)
+
+
+match : (List comparable -> Maybe a -> b -> ( b, Match comparable )) -> b -> Match comparable -> Trie comparable a -> b
+match fn accum trie first =
+    Debug.todo "matchInner"
 
 
 

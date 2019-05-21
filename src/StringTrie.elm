@@ -47,6 +47,9 @@ module StringTrie exposing
 
 -}
 
+-- expandIgnoreCase : String -> Trie a -> List String
+-- matchesIgnoreCase : String -> Trie a -> Bool
+
 import Dict exposing (Dict)
 import Trie
 
