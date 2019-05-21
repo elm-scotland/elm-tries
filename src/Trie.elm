@@ -403,7 +403,7 @@ foldSearchGoals fn accum search =
                     foldSearchGoals fn accum (searchFn ())
 
                 Just value ->
-                    foldSearchGoals fn (fn key value accum) (searchFn ())
+                    foldSearchGoals fn (fn (List.reverse key) value accum) (searchFn ())
 
         Search.Ongoing _ searchFn ->
             foldSearchGoals fn accum (searchFn ())
