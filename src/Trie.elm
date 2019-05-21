@@ -391,27 +391,69 @@ type Match comparable
 
 match : (List comparable -> Maybe a -> b -> ( b, Match comparable )) -> b -> Trie comparable a -> b
 match fn accum trie =
-    -- Process the top node of the trie through fn.
-    -- Check the result of fn.
-    -- Expand onto the trail unless its Break.
-    -- Recurse on matchInner.
-    matchInner fn accum [] []
+    matchInner fn accum [ ( [], trie ) ]
 
 
 matchInner :
     (List comparable -> Maybe a -> b -> ( b, Match comparable ))
     -> b
-    -> List comparable
-    -> List ( comparable, Trie comparable a )
+    -> List ( List comparable, Trie comparable a )
     -> b
-matchInner fn accum keyAccum trail =
+matchInner fn accum trail =
     -- Check the head of the trail.
     -- If there is a head, process it through fn.
-    -- No head, done.
+    -- No head, done
     -- Check the result of fn.
     -- Expand onto the trail unless its Break.
     -- Recurse on matchInner.
-    Debug.todo "matchInner"
+    case trail of
+        [] ->
+            accum
+
+        ( keyPath, Trie maybeValue dict ) :: remaining ->
+            let
+                ( nextAccum, nextMatch ) =
+                    fn (List.reverse keyPath) maybeValue accum
+            in
+            case nextMatch of
+                Break ->
+                    matchInner fn nextAccum remaining
+
+                Wildcard ->
+                    let
+                        nextTrail =
+                            List.append (Dict.toList dict |> List.map (Tuple.mapFirst (\k -> k :: keyPath))) remaining
+                    in
+                    matchInner fn nextAccum nextTrail
+
+                ContinueIf comp ->
+                    let
+                        nextTrail =
+                            case Dict.get comp dict of
+                                Nothing ->
+                                    remaining
+
+                                Just trie ->
+                                    ( comp :: keyPath, trie ) :: remaining
+                    in
+                    matchInner fn nextAccum nextTrail
+
+                ContinueIfOneOf list ->
+                    let
+                        nextTrail =
+                            List.foldl
+                                (\comp compAccum ->
+                                    case Dict.get comp dict of
+                                        Nothing ->
+                                            compAccum
+
+                                        Just trie ->
+                                            ( comp :: keyPath, trie ) :: compAccum
+                                )
+                                remaining
+                                list
+                    in
+                    matchInner fn nextAccum nextTrail
 
 
 
