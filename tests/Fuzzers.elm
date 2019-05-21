@@ -1,4 +1,4 @@
-module Fuzzers exposing (listChars, longString, suffixString)
+module Fuzzers exposing (listChars, longString, stringToListChars, suffixString)
 
 import Fuzz exposing (Fuzzer, int, list, string)
 
@@ -7,6 +7,7 @@ import Fuzz exposing (Fuzzer, int, list, string)
 -- Fuzzers targeted at trie testing.
 
 
+suffixString : Fuzzer String
 suffixString =
     Fuzz.frequency
         [ ( 4, Fuzz.constant "a" )
@@ -19,6 +20,7 @@ suffixString =
         |> Fuzz.map (String.concat >> String.left 10)
 
 
+longString : Int -> Fuzzer String
 longString factor =
     Fuzz.frequency
         [ ( 1, Fuzz.constant (String.repeat factor "a") )
@@ -30,5 +32,11 @@ longString factor =
         |> Fuzz.map String.concat
 
 
+listChars : Fuzzer (List Char)
 listChars =
-    Fuzz.map String.toList Fuzz.string
+    stringToListChars Fuzz.string
+
+
+stringToListChars : Fuzzer String -> Fuzzer (List Char)
+stringToListChars =
+    Fuzz.map String.toList
