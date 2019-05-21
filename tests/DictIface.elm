@@ -66,7 +66,7 @@ emptyIsEmpty implName dictImpl =
     Test.test "Check empty trie reports isEmpty." test
 
 
-emptyContainsNoVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
+emptyContainsNoVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result -> Test
 emptyContainsNoVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -93,7 +93,7 @@ nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
         test
 
 
-singletonContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
+singletonContainsVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result -> Test
 singletonContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -115,7 +115,7 @@ singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
         test
 
 
-emptyInsertStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
+emptyInsertStringContainsVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result -> Test
 emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =

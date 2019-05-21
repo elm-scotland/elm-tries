@@ -1,4 +1,4 @@
-module Fuzzers exposing (longString, suffixString)
+module Fuzzers exposing (listChars, longString, suffixString)
 
 import Fuzz exposing (Fuzzer, int, list, string)
 
@@ -28,3 +28,7 @@ longString factor =
         ]
         |> Fuzz.list
         |> Fuzz.map String.concat
+
+
+listChars =
+    Fuzz.map String.toList Fuzz.string
