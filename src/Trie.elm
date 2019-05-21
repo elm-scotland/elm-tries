@@ -397,7 +397,7 @@ match fn accum trie =
 
 
 matchInner :
-    (List comparable -> Maybe a -> b -> ( b, Match comparable ))
+    (List comparable -> Maybe a -> context -> b -> ( b, Match comparable, context ))
     -> b
     -> List ( List comparable, Trie comparable a )
     -> b

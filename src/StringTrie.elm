@@ -214,3 +214,29 @@ matchIf fn accum trie =
 matchIfOneOf : (String -> Maybe a -> b -> ( b, List Char )) -> b -> Trie a -> b
 matchIfOneOf fn accum trie =
     Trie.matchIfOneOf (\chars -> fn <| String.fromList chars) accum trie
+
+
+expandIgnoreCase : String -> Trie a -> List String
+expandIgnoreCase key trie =
+    let
+        matchFn suffix maybeValue result =
+            case maybeValue of
+                Nothing ->
+                    ( result, [] )
+
+                Just value ->
+                    let
+                        suffixLength =
+                            String.length suffix
+                    in
+                    if suffixLength == String.length key then
+                        ( key :: result, [] )
+
+                    else
+                        let
+                            nextChar =
+                                String.slice suffixLength (suffixLength + 1) key
+                        in
+                        ( result, [ nextChar ] )
+    in
+    matchIfOneOf matchFn [] trie
