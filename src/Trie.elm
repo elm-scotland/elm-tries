@@ -356,9 +356,21 @@ matchWildcard fn accum trie =
         trie
 
 
-matchIf : (List comparable -> Maybe a -> b -> ( b, comparable )) -> b -> Trie comparable a -> b
+matchIf : (List comparable -> Maybe a -> b -> ( b, Maybe comparable )) -> b -> Trie comparable a -> b
 matchIf fn accum trie =
-    match (\key maybeValue -> fn key maybeValue >> Tuple.mapSecond (\comp -> ContinueIf comp))
+    match
+        (\key maybeValue ->
+            fn key maybeValue
+                >> Tuple.mapSecond
+                    (\maybeComp ->
+                        case maybeComp of
+                            Nothing ->
+                                Break
+
+                            Just comp ->
+                                ContinueIf comp
+                    )
+        )
         accum
         trie
 
