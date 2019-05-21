@@ -353,23 +353,20 @@ matchWildcard fn accum trie =
                     )
         )
         accum
-        Wildcard
         trie
 
 
-matchIf : (List comparable -> Maybe a -> b -> ( b, comparable )) -> b -> comparable -> Trie comparable a -> b
-matchIf fn accum first trie =
+matchIf : (List comparable -> Maybe a -> b -> ( b, comparable )) -> b -> Trie comparable a -> b
+matchIf fn accum trie =
     match (\key maybeValue -> fn key maybeValue >> Tuple.mapSecond (\comp -> ContinueIf comp))
         accum
-        (ContinueIf first)
         trie
 
 
-matchIfOneOf : (List comparable -> Maybe a -> b -> ( b, List comparable )) -> b -> List comparable -> Trie comparable a -> b
-matchIfOneOf fn accum firstList trie =
+matchIfOneOf : (List comparable -> Maybe a -> b -> ( b, List comparable )) -> b -> Trie comparable a -> b
+matchIfOneOf fn accum trie =
     match (\key maybeValue -> fn key maybeValue >> Tuple.mapSecond (\list -> ContinueIfOneOf list))
         accum
-        (ContinueIfOneOf firstList)
         trie
 
 
@@ -380,8 +377,28 @@ type Match comparable
     | ContinueIfOneOf (List comparable)
 
 
-match : (List comparable -> Maybe a -> b -> ( b, Match comparable )) -> b -> Match comparable -> Trie comparable a -> b
-match fn accum trie first =
+match : (List comparable -> Maybe a -> b -> ( b, Match comparable )) -> b -> Trie comparable a -> b
+match fn accum trie =
+    -- Process the top node of the trie through fn.
+    -- Check the result of fn.
+    -- Expand onto the trail unless its Break.
+    -- Recurse on matchInner.
+    matchInner fn accum [] []
+
+
+matchInner :
+    (List comparable -> Maybe a -> b -> ( b, Match comparable ))
+    -> b
+    -> List comparable
+    -> List ( comparable, Trie comparable a )
+    -> b
+matchInner fn accum keyAccum trail =
+    -- Check the head of the trail.
+    -- If there is a head, process it through fn.
+    -- No head, done.
+    -- Check the result of fn.
+    -- Expand onto the trail unless its Break.
+    -- Recurse on matchInner.
     Debug.todo "matchInner"
 
 
