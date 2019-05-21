@@ -6,6 +6,7 @@ module Trie exposing
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     , expand, matches, subtrie
+    , matchWildcard, matchIf, matchIfOneOf
     )
 
 {-| A trie mapping unique strings to values.
@@ -41,9 +42,10 @@ module Trie exposing
 @docs union, intersect, diff, merge
 
 
-# Trie specific string matching operations
+# Trie specific string matching operations.
 
 @docs expand, matches, subtrie
+@docs matchWildcard, matchIf, matchIfOneOf
 
 -}
 
