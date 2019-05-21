@@ -38,11 +38,11 @@ suite : Test
 suite =
     describe "Trie tests"
         [ DictIface.emptyIsEmpty "trie" trie
-        , DictIface.emptyContainsNoVal "string" "trie" listChars trie
-        , DictIface.emptyInsertStringContainsVal "string" "trie" listChars trie
+        , DictIface.emptyContainsNoVal "listChars" "trie" listChars trie
+        , DictIface.emptyInsertStringContainsVal "listChars" "trie" listChars trie
 
         -- , DictIface.nonEmptyIsNotEmpty "list string" "trie" (list string) trie
-        , DictIface.singletonContainsVal "string" "trie" listChars trie
+        , DictIface.singletonContainsVal "listChars" "trie" listChars trie
 
         -- , DictIface.singletonEmptyStringContainsVal "string" "trie" string trie
         -- , DictIface.listOfNumsDoubledAllEven "list int" "trie" (list int) trie
