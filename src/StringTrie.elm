@@ -51,7 +51,7 @@ module StringTrie exposing
 -- matchesIgnoreCase : String -> Trie a -> Bool
 
 import Dict exposing (Dict)
-import Trie
+import Trie exposing (Match(..))
 
 
 type alias Trie a =
@@ -211,3 +211,15 @@ match :
     -> b
 match fn accum context trie =
     Trie.match fn accum context trie
+
+
+expandIgnoreCase : String -> Trie a -> List String
+expandIgnoreCase key trie =
+    let
+        _ =
+            Debug.todo "expandIgnoreCase"
+    in
+    match (\maybeChar maybeValue ctx accum -> ( accum, ctx, Wildcard ))
+        []
+        (String.toList key)
+        trie
