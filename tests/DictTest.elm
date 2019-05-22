@@ -47,7 +47,9 @@ suite =
         , DictIface.listOfValsAllKeysMembers "list string" " dict" (list string) dict
         , DictIface.listOfValsContainsAllVals "list string" " dict" (list string) dict
         , DictIface.listOfValsFoldlAllKeys "list string" " dict" (list string) dict
+        , DictIface.listOfValsFoldlIncreasing "list string" " dict" (list string) dict
         , DictIface.listOfValsFoldrAllKeys "list string" " dict" (list string) dict
+        , DictIface.listOfValsFoldrDecreasing "list string" " dict" (list string) dict
         , DictIface.listOfValsListsAllKeys "list string" " dict" (list string) dict
         , DictIface.listOfValsListsAllValues "list string" " dict" (list string) dict
         , DictIface.listOfValsRemovedContainsNone "list string" " dict" (list string) dict

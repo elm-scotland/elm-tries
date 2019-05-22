@@ -7,7 +7,9 @@ module DictIface exposing
     , listOfValsAllKeysMembers
     , listOfValsContainsAllVals
     , listOfValsFoldlAllKeys
+    , listOfValsFoldlIncreasing
     , listOfValsFoldrAllKeys
+    , listOfValsFoldrDecreasing
     , listOfValsListsAllKeys
     , listOfValsListsAllValues
     , listOfValsRemovedContainsNone
@@ -323,4 +325,84 @@ listOfValsFoldrAllKeys fuzzName implName fuzzer dictImpl =
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with a list of vals and folds it right, checking all keys are gathered in the fold (" ++ fuzzName ++ ").")
+        test
+
+
+listOfValsFoldlIncreasing :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> IDict comparable comparable dict ( Maybe comparable, Maybe ( comparable, comparable ) ) dictb result
+    -> Test
+listOfValsFoldlIncreasing fuzzName implName fuzzer dictImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.foldl
+                            (\k _ ( maybekCompare, _ ) ->
+                                case maybekCompare of
+                                    Nothing ->
+                                        ( Just k, Nothing )
+
+                                    Just kCompare ->
+                                        ( Just k
+                                        , if k >= kCompare then
+                                            Nothing
+
+                                          else
+                                            Just ( k, kCompare )
+                                        )
+                            )
+                            ( Nothing, Nothing )
+                        |> Tuple.second
+                        |> Maybe.map (\( k, kCompare ) -> Expect.atLeast kCompare k)
+                        |> Maybe.withDefault Expect.pass
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals and folds it left, checking all keys are explored in order from least to most (" ++ fuzzName ++ ").")
+        test
+
+
+listOfValsFoldrDecreasing :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> IDict comparable comparable dict ( Maybe comparable, Maybe ( comparable, comparable ) ) dictb result
+    -> Test
+listOfValsFoldrDecreasing fuzzName implName fuzzer dictImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> dictImpl.foldr
+                            (\k _ ( maybekCompare, _ ) ->
+                                case maybekCompare of
+                                    Nothing ->
+                                        ( Just k, Nothing )
+
+                                    Just kCompare ->
+                                        ( Just k
+                                        , if k <= kCompare then
+                                            Nothing
+
+                                          else
+                                            Just ( k, kCompare )
+                                        )
+                            )
+                            ( Nothing, Nothing )
+                        |> Tuple.second
+                        |> Maybe.map (\( k, kCompare ) -> Expect.atMost kCompare k)
+                        |> Maybe.withDefault Expect.pass
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with a list of vals and folds it right, checking all keys are explored in order from most to least (" ++ fuzzName ++ ").")
         test
