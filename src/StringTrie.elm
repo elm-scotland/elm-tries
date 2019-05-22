@@ -5,7 +5,7 @@ module StringTrie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , expand, matches, subtrie
+    , Match, match, expand, matches, subtrie
     )
 
 {-| A trie mapping unique strings to values.
@@ -41,9 +41,9 @@ module StringTrie exposing
 @docs union, intersect, diff, merge
 
 
-# Trie specific string matching operations
+# Trie specific search operations
 
-@docs expand, matches, subtrie
+@docs Match, match, expand, matches, subtrie
 
 -}
 
@@ -197,3 +197,17 @@ matches key trie =
 subtrie : String -> Trie a -> Maybe (Trie a)
 subtrie key trie =
     Trie.subtrie (String.toList key) trie
+
+
+type alias Match comparable =
+    Trie.Match comparable
+
+
+match :
+    (Maybe Char -> Maybe a -> context -> b -> ( b, context, Match Char ))
+    -> b
+    -> context
+    -> Trie a
+    -> b
+match fn accum context trie =
+    Trie.match fn accum context trie

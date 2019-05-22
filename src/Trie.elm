@@ -5,7 +5,7 @@ module Trie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , expand, matches, subtrie
+    , Match(..), match, expand, matches, subtrie
     )
 
 {-| A trie mapping unique strings to values.
@@ -41,9 +41,9 @@ module Trie exposing
 @docs union, intersect, diff, merge
 
 
-# Trie specific string matching operations.
+# Trie specific search operations.
 
-@docs expand, matches, subtrie
+@docs Match, match, expand, matches, subtrie
 
 -}
 
