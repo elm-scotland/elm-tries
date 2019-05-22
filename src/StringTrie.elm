@@ -6,7 +6,6 @@ module StringTrie exposing
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     , expand, matches, subtrie
-    , matchWildcard, matchIf, matchIfOneOf
     )
 
 {-| A trie mapping unique strings to values.
@@ -45,7 +44,6 @@ module StringTrie exposing
 # Trie specific string matching operations
 
 @docs expand, matches, subtrie
-@docs matchWildcard, matchIf, matchIfOneOf
 
 -}
 
@@ -199,44 +197,3 @@ matches key trie =
 subtrie : String -> Trie a -> Maybe (Trie a)
 subtrie key trie =
     Trie.subtrie (String.toList key) trie
-
-
-matchWildcard : (String -> Maybe a -> b -> ( b, Bool )) -> b -> Trie a -> b
-matchWildcard fn accum trie =
-    Trie.matchWildcard (\chars -> fn <| String.fromList chars) accum trie
-
-
-matchIf : (String -> Maybe a -> b -> ( b, Maybe Char )) -> b -> Trie a -> b
-matchIf fn accum trie =
-    Trie.matchIf (\chars -> fn <| String.fromList chars) accum trie
-
-
-matchIfOneOf : (String -> Maybe a -> b -> ( b, List Char )) -> b -> Trie a -> b
-matchIfOneOf fn accum trie =
-    Trie.matchIfOneOf (\chars -> fn <| String.fromList chars) accum trie
-
-
-expandIgnoreCase : String -> Trie a -> List String
-expandIgnoreCase key trie =
-    let
-        matchFn suffix maybeValue result =
-            case maybeValue of
-                Nothing ->
-                    ( result, [] )
-
-                Just value ->
-                    let
-                        suffixLength =
-                            String.length suffix
-                    in
-                    if suffixLength == String.length key then
-                        ( key :: result, [] )
-
-                    else
-                        let
-                            nextChar =
-                                String.slice suffixLength (suffixLength + 1) key
-                        in
-                        ( result, [ nextChar ] )
-    in
-    matchIfOneOf matchFn [] trie

@@ -6,7 +6,6 @@ module Trie exposing
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     , expand, matches, subtrie
-    , matchWildcard, matchIf, matchIfOneOf
     )
 
 {-| A trie mapping unique strings to values.
@@ -45,7 +44,6 @@ module Trie exposing
 # Trie specific string matching operations.
 
 @docs expand, matches, subtrie
-@docs matchWildcard, matchIf, matchIfOneOf
 
 -}
 
@@ -340,50 +338,6 @@ subtrie key ((Trie maybeValue dict) as trie) =
 -- Flexible search API
 
 
-matchWildcard : (List comparable -> Maybe a -> b -> ( b, Bool )) -> b -> Trie comparable a -> b
-matchWildcard fn accum trie =
-    match
-        (\key maybeValue ->
-            fn key maybeValue
-                >> Tuple.mapSecond
-                    (\flag ->
-                        if flag then
-                            Wildcard
-
-                        else
-                            Break
-                    )
-        )
-        accum
-        trie
-
-
-matchIf : (List comparable -> Maybe a -> b -> ( b, Maybe comparable )) -> b -> Trie comparable a -> b
-matchIf fn accum trie =
-    match
-        (\key maybeValue ->
-            fn key maybeValue
-                >> Tuple.mapSecond
-                    (\maybeComp ->
-                        case maybeComp of
-                            Nothing ->
-                                Break
-
-                            Just comp ->
-                                ContinueIf comp
-                    )
-        )
-        accum
-        trie
-
-
-matchIfOneOf : (List comparable -> Maybe a -> b -> ( b, List comparable )) -> b -> Trie comparable a -> b
-matchIfOneOf fn accum trie =
-    match (\key maybeValue -> fn key maybeValue >> Tuple.mapSecond (\list -> ContinueIfOneOf list))
-        accum
-        trie
-
-
 type Match comparable
     = Break
     | Wildcard
@@ -391,15 +345,20 @@ type Match comparable
     | ContinueIfOneOf (List comparable)
 
 
-match : (List comparable -> Maybe a -> b -> ( b, Match comparable )) -> b -> Trie comparable a -> b
-match fn accum trie =
-    matchInner fn accum [ ( [], trie ) ]
+match :
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
+    -> b
+    -> context
+    -> Trie comparable a
+    -> b
+match fn accum context trie =
+    matchInner fn accum [ ( [], context, trie ) ]
 
 
 matchInner :
-    (List comparable -> Maybe a -> context -> b -> ( b, Match comparable, context ))
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
     -> b
-    -> List ( List comparable, Trie comparable a )
+    -> List ( List comparable, context, Trie comparable a )
     -> b
 matchInner fn accum trail =
     -- Check the head of the trail.
@@ -412,10 +371,10 @@ matchInner fn accum trail =
         [] ->
             accum
 
-        ( keyPath, Trie maybeValue dict ) :: remaining ->
+        ( keyPath, context, Trie maybeValue dict ) :: remaining ->
             let
-                ( nextAccum, nextMatch ) =
-                    fn (List.reverse keyPath) maybeValue accum
+                ( nextAccum, nextContext, nextMatch ) =
+                    fn (List.head keyPath) maybeValue context accum
             in
             case nextMatch of
                 Break ->
@@ -424,19 +383,19 @@ matchInner fn accum trail =
                 Wildcard ->
                     let
                         nextTrail =
-                            List.append (Dict.toList dict |> List.map (Tuple.mapFirst (\k -> k :: keyPath))) remaining
+                            Dict.foldl (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
                     in
                     matchInner fn nextAccum nextTrail
 
-                ContinueIf comp ->
+                ContinueIf k ->
                     let
                         nextTrail =
-                            case Dict.get comp dict of
+                            case Dict.get k dict of
                                 Nothing ->
                                     remaining
 
                                 Just trie ->
-                                    ( comp :: keyPath, trie ) :: remaining
+                                    ( k :: keyPath, nextContext, trie ) :: remaining
                     in
                     matchInner fn nextAccum nextTrail
 
@@ -444,13 +403,13 @@ matchInner fn accum trail =
                     let
                         nextTrail =
                             List.foldl
-                                (\comp compAccum ->
-                                    case Dict.get comp dict of
+                                (\k steps ->
+                                    case Dict.get k dict of
                                         Nothing ->
-                                            compAccum
+                                            steps
 
                                         Just trie ->
-                                            ( comp :: keyPath, trie ) :: compAccum
+                                            ( k :: keyPath, nextContext, trie ) :: steps
                                 )
                                 remaining
                                 list
