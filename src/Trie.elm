@@ -48,7 +48,6 @@ module Trie exposing
 -}
 
 import Dict exposing (Dict)
-import Search
 
 
 type Trie comparable a
@@ -213,17 +212,53 @@ mapInner fn keyAccum ((Trie maybeValue dict) as trie) =
 
 
 foldl : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
-foldl fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = wildcardStepl, cost = \_ -> 1.0 }
-        [ ( ( [], trie ), isJust maybeValue ) ]
-        |> foldSearchGoals fn accum
+foldl fn accum trie =
+    match
+        (\maybeKeyPart maybeValue ctx innerAccum ->
+            let
+                nextCtx =
+                    case maybeKeyPart of
+                        Nothing ->
+                            ctx
+
+                        Just k ->
+                            k :: ctx
+            in
+            case maybeValue of
+                Nothing ->
+                    ( innerAccum, nextCtx, Wildcard )
+
+                Just value ->
+                    ( fn (List.reverse nextCtx) value innerAccum, nextCtx, Wildcard )
+        )
+        accum
+        []
+        trie
 
 
 foldr : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
-foldr fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
-        [ ( ( [], trie ), isJust maybeValue ) ]
-        |> foldSearchGoals fn accum
+foldr fn accum trie =
+    match
+        (\maybeKeyPart maybeValue ctx innerAccum ->
+            let
+                nextCtx =
+                    case maybeKeyPart of
+                        Nothing ->
+                            ctx
+
+                        Just k ->
+                            k :: ctx
+            in
+            case maybeValue of
+                Nothing ->
+                    ( innerAccum, nextCtx, Wildcard )
+
+                Just value ->
+                    ( fn (List.reverse nextCtx) value innerAccum, nextCtx, Wildcard )
+        )
+        accum
+        []
+        trie
 
 
 filter : (List comparable -> a -> Bool) -> Trie comparable a -> Trie comparable a
@@ -429,55 +464,3 @@ isJust maybeSomething =
 
         Just _ ->
             True
-
-
-{-| Expands all possible extensions of the current key path in a trie.
-
-The `Dict` containing the child tries is folded left in this implementation.
-
--}
-wildcardStepl : ( List comparable, Trie comparable a ) -> List ( ( List comparable, Trie comparable a ), Bool )
-wildcardStepl ( keyAccum, Trie _ dict ) =
-    Dict.foldl
-        (\k ((Trie maybeValue _) as innerTrie) stack ->
-            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
-                :: stack
-        )
-        []
-        dict
-
-
-{-| Expands all possible extensions of the current key path in a trie.
-
-The `Dict` containing the child tries is folded right in this implementation.
-
--}
-wildcardStepr : ( List comparable, Trie comparable a ) -> List ( ( List comparable, Trie comparable a ), Bool )
-wildcardStepr ( keyAccum, Trie _ dict ) =
-    Dict.foldr
-        (\k ((Trie maybeValue _) as innerTrie) stack ->
-            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
-                :: stack
-        )
-        []
-        dict
-
-
-{-| Performs a fold over all goals of a search over Tries, until the searh is complete.
--}
-foldSearchGoals : (List comparable -> a -> b -> b) -> b -> Search.SearchResult ( List comparable, Trie comparable a ) -> b
-foldSearchGoals fn accum search =
-    case Search.nextGoal search of
-        Search.Complete ->
-            accum
-
-        Search.Goal ( key, Trie maybeValue _ ) searchFn ->
-            case maybeValue of
-                Nothing ->
-                    foldSearchGoals fn accum (searchFn ())
-
-                Just value ->
-                    foldSearchGoals fn (fn (List.reverse key) value accum) (searchFn ())
-
-        Search.Ongoing _ searchFn ->
-            foldSearchGoals fn accum (searchFn ())
