@@ -5,8 +5,7 @@ module Trie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , expand, matches, subtrie
-    , matchWildcard, matchIf, matchIfOneOf
+    , Match(..), match, expand, matches, subtrie
     )
 
 {-| A trie mapping unique strings to values.
@@ -42,15 +41,13 @@ module Trie exposing
 @docs union, intersect, diff, merge
 
 
-# Trie specific string matching operations.
+# Trie specific search operations.
 
-@docs expand, matches, subtrie
-@docs matchWildcard, matchIf, matchIfOneOf
+@docs Match, match, expand, matches, subtrie
 
 -}
 
 import Dict exposing (Dict)
-import Search
 
 
 type Trie comparable a
@@ -215,17 +212,53 @@ mapInner fn keyAccum ((Trie maybeValue dict) as trie) =
 
 
 foldl : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
-foldl fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = wildcardStepl, cost = \_ -> 1.0 }
-        [ ( ( [], trie ), isJust maybeValue ) ]
-        |> foldSearchGoals fn accum
+foldl fn accum trie =
+    match
+        (\maybeKeyPart maybeValue ctx innerAccum ->
+            let
+                nextCtx =
+                    case maybeKeyPart of
+                        Nothing ->
+                            ctx
+
+                        Just k ->
+                            k :: ctx
+            in
+            case maybeValue of
+                Nothing ->
+                    ( innerAccum, nextCtx, Wildcard )
+
+                Just value ->
+                    ( fn (List.reverse nextCtx) value innerAccum, nextCtx, Wildcard )
+        )
+        accum
+        []
+        trie
 
 
 foldr : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
-foldr fn accum ((Trie maybeValue _) as trie) =
-    Search.depthFirst { step = wildcardStepr, cost = \_ -> 1.0 }
-        [ ( ( [], trie ), isJust maybeValue ) ]
-        |> foldSearchGoals fn accum
+foldr fn accum trie =
+    match
+        (\maybeKeyPart maybeValue ctx innerAccum ->
+            let
+                nextCtx =
+                    case maybeKeyPart of
+                        Nothing ->
+                            ctx
+
+                        Just k ->
+                            k :: ctx
+            in
+            case maybeValue of
+                Nothing ->
+                    ( innerAccum, nextCtx, Wildcard )
+
+                Just value ->
+                    ( fn (List.reverse nextCtx) value innerAccum, nextCtx, Wildcard )
+        )
+        accum
+        []
+        trie
 
 
 filter : (List comparable -> a -> Bool) -> Trie comparable a -> Trie comparable a
@@ -340,50 +373,6 @@ subtrie key ((Trie maybeValue dict) as trie) =
 -- Flexible search API
 
 
-matchWildcard : (List comparable -> Maybe a -> b -> ( b, Bool )) -> b -> Trie comparable a -> b
-matchWildcard fn accum trie =
-    match
-        (\key maybeValue ->
-            fn key maybeValue
-                >> Tuple.mapSecond
-                    (\flag ->
-                        if flag then
-                            Wildcard
-
-                        else
-                            Break
-                    )
-        )
-        accum
-        trie
-
-
-matchIf : (List comparable -> Maybe a -> b -> ( b, Maybe comparable )) -> b -> Trie comparable a -> b
-matchIf fn accum trie =
-    match
-        (\key maybeValue ->
-            fn key maybeValue
-                >> Tuple.mapSecond
-                    (\maybeComp ->
-                        case maybeComp of
-                            Nothing ->
-                                Break
-
-                            Just comp ->
-                                ContinueIf comp
-                    )
-        )
-        accum
-        trie
-
-
-matchIfOneOf : (List comparable -> Maybe a -> b -> ( b, List comparable )) -> b -> Trie comparable a -> b
-matchIfOneOf fn accum trie =
-    match (\key maybeValue -> fn key maybeValue >> Tuple.mapSecond (\list -> ContinueIfOneOf list))
-        accum
-        trie
-
-
 type Match comparable
     = Break
     | Wildcard
@@ -391,15 +380,20 @@ type Match comparable
     | ContinueIfOneOf (List comparable)
 
 
-match : (List comparable -> Maybe a -> b -> ( b, Match comparable )) -> b -> Trie comparable a -> b
-match fn accum trie =
-    matchInner fn accum [ ( [], trie ) ]
+match :
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
+    -> b
+    -> context
+    -> Trie comparable a
+    -> b
+match fn accum context trie =
+    matchInner fn accum [ ( [], context, trie ) ]
 
 
 matchInner :
-    (List comparable -> Maybe a -> b -> ( b, Match comparable ))
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
     -> b
-    -> List ( List comparable, Trie comparable a )
+    -> List ( List comparable, context, Trie comparable a )
     -> b
 matchInner fn accum trail =
     -- Check the head of the trail.
@@ -412,10 +406,10 @@ matchInner fn accum trail =
         [] ->
             accum
 
-        ( keyPath, Trie maybeValue dict ) :: remaining ->
+        ( keyPath, context, Trie maybeValue dict ) :: remaining ->
             let
-                ( nextAccum, nextMatch ) =
-                    fn (List.reverse keyPath) maybeValue accum
+                ( nextAccum, nextContext, nextMatch ) =
+                    fn (List.head keyPath) maybeValue context accum
             in
             case nextMatch of
                 Break ->
@@ -424,19 +418,19 @@ matchInner fn accum trail =
                 Wildcard ->
                     let
                         nextTrail =
-                            List.append (Dict.toList dict |> List.map (Tuple.mapFirst (\k -> k :: keyPath))) remaining
+                            Dict.foldl (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
                     in
                     matchInner fn nextAccum nextTrail
 
-                ContinueIf comp ->
+                ContinueIf k ->
                     let
                         nextTrail =
-                            case Dict.get comp dict of
+                            case Dict.get k dict of
                                 Nothing ->
                                     remaining
 
                                 Just trie ->
-                                    ( comp :: keyPath, trie ) :: remaining
+                                    ( k :: keyPath, nextContext, trie ) :: remaining
                     in
                     matchInner fn nextAccum nextTrail
 
@@ -444,13 +438,13 @@ matchInner fn accum trail =
                     let
                         nextTrail =
                             List.foldl
-                                (\comp compAccum ->
-                                    case Dict.get comp dict of
+                                (\k steps ->
+                                    case Dict.get k dict of
                                         Nothing ->
-                                            compAccum
+                                            steps
 
                                         Just trie ->
-                                            ( comp :: keyPath, trie ) :: compAccum
+                                            ( k :: keyPath, nextContext, trie ) :: steps
                                 )
                                 remaining
                                 list
@@ -470,55 +464,3 @@ isJust maybeSomething =
 
         Just _ ->
             True
-
-
-{-| Expands all possible extensions of the current key path in a trie.
-
-The `Dict` containing the child tries is folded left in this implementation.
-
--}
-wildcardStepl : ( List comparable, Trie comparable a ) -> List ( ( List comparable, Trie comparable a ), Bool )
-wildcardStepl ( keyAccum, Trie _ dict ) =
-    Dict.foldl
-        (\k ((Trie maybeValue _) as innerTrie) stack ->
-            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
-                :: stack
-        )
-        []
-        dict
-
-
-{-| Expands all possible extensions of the current key path in a trie.
-
-The `Dict` containing the child tries is folded right in this implementation.
-
--}
-wildcardStepr : ( List comparable, Trie comparable a ) -> List ( ( List comparable, Trie comparable a ), Bool )
-wildcardStepr ( keyAccum, Trie _ dict ) =
-    Dict.foldr
-        (\k ((Trie maybeValue _) as innerTrie) stack ->
-            ( ( k :: keyAccum, innerTrie ), isJust maybeValue )
-                :: stack
-        )
-        []
-        dict
-
-
-{-| Performs a fold over all goals of a search over Tries, until the searh is complete.
--}
-foldSearchGoals : (List comparable -> a -> b -> b) -> b -> Search.SearchResult ( List comparable, Trie comparable a ) -> b
-foldSearchGoals fn accum search =
-    case Search.nextGoal search of
-        Search.Complete ->
-            accum
-
-        Search.Goal ( key, Trie maybeValue _ ) searchFn ->
-            case maybeValue of
-                Nothing ->
-                    foldSearchGoals fn accum (searchFn ())
-
-                Just value ->
-                    foldSearchGoals fn (fn (List.reverse key) value accum) (searchFn ())
-
-        Search.Ongoing _ searchFn ->
-            foldSearchGoals fn accum (searchFn ())

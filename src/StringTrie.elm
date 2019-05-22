@@ -5,8 +5,7 @@ module StringTrie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , expand, matches, subtrie
-    , matchWildcard, matchIf, matchIfOneOf
+    , Match, match, expand, matches, subtrie
     )
 
 {-| A trie mapping unique strings to values.
@@ -42,10 +41,9 @@ module StringTrie exposing
 @docs union, intersect, diff, merge
 
 
-# Trie specific string matching operations
+# Trie specific search operations
 
-@docs expand, matches, subtrie
-@docs matchWildcard, matchIf, matchIfOneOf
+@docs Match, match, expand, matches, subtrie
 
 -}
 
@@ -53,7 +51,7 @@ module StringTrie exposing
 -- matchesIgnoreCase : String -> Trie a -> Bool
 
 import Dict exposing (Dict)
-import Trie
+import Trie exposing (Match(..))
 
 
 type alias Trie a =
@@ -201,16 +199,27 @@ subtrie key trie =
     Trie.subtrie (String.toList key) trie
 
 
-matchWildcard : (String -> Maybe a -> b -> ( b, Bool )) -> b -> Trie a -> b
-matchWildcard fn accum trie =
-    Trie.matchWildcard (\chars -> fn <| String.fromList chars) accum trie
+type alias Match comparable =
+    Trie.Match comparable
 
 
-matchIf : (String -> Maybe a -> b -> ( b, Maybe Char )) -> b -> Trie a -> b
-matchIf fn accum trie =
-    Trie.matchIf (\chars -> fn <| String.fromList chars) accum trie
+match :
+    (Maybe Char -> Maybe a -> context -> b -> ( b, context, Match Char ))
+    -> b
+    -> context
+    -> Trie a
+    -> b
+match fn accum context trie =
+    Trie.match fn accum context trie
 
 
-matchIfOneOf : (String -> Maybe a -> b -> ( b, List Char )) -> b -> Trie a -> b
-matchIfOneOf fn accum trie =
-    Trie.matchIfOneOf (\chars -> fn <| String.fromList chars) accum trie
+expandIgnoreCase : String -> Trie a -> List String
+expandIgnoreCase key trie =
+    let
+        _ =
+            Debug.todo "expandIgnoreCase"
+    in
+    match (\maybeChar maybeValue ctx accum -> ( accum, ctx, Wildcard ))
+        []
+        (String.toList key)
+        trie
