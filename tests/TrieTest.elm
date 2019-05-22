@@ -48,8 +48,10 @@ suite =
         , DictIface.listOfValsContainsAllVals "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
         , DictIface.listOfValsFoldlAllKeys "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
         , DictIface.listOfValsFoldlAllKeys "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsFoldlIncreasing "list (stringToListChars string)" " dict" (list (stringToListChars string)) trie
         , DictIface.listOfValsFoldrAllKeys "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
         , DictIface.listOfValsFoldrAllKeys "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsFoldrDecreasing "list (stringToListChars string)" " dict" (list (stringToListChars string)) trie
         , DictIface.listOfValsListsAllKeys "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
         , DictIface.listOfValsListsAllKeys "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
         , DictIface.listOfValsListsAllValues "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
