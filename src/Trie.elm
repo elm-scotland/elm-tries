@@ -418,7 +418,7 @@ matchInner fn accum trail =
                 Wildcard ->
                     let
                         nextTrail =
-                            Dict.foldl (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
+                            Dict.foldr (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
                     in
                     matchInner fn nextAccum nextTrail
 
