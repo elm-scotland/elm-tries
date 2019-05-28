@@ -478,13 +478,13 @@ subtrie key ((Trie maybeValue dict) as trie) =
 
 {-| `Match` describes how a flexible search over a trie will proceed.
 
-`Break` - do not explore any more below the current suffix.
-`Wildcard` - continue with all possible next keys below the current suffix.
-`ContinueIf` - continue with the next key provided it exactly matches the comparable specified.
-`ContinueIfOneOf` - continue with the next key provided it matches one of the comparables specified.
+  - `Break` - do not explore any more below the current suffix.
+  - `Wildcard` - continue with all possible next keys below the current suffix.
+  - `ContinueIf` - continue with the next key provided it exactly matches the comparable specified.
+  - `ContinueIfOneOf` - continue with the next key provided it matches one of the comparables specified.
 
 The `Break`, `ContinueIf` and `ContinueIfOneOf` options allow a trie to be
-traveresed efficiently without exploring unnecessary keys.
+traversed efficiently without exploring unnecessary keys.
 
 The `Wildcard` and `ContinueIfOneOf` options allow flexible matching within a
 trie. Functions such as case-insensitive matching, fuzzy matching or regular
@@ -521,7 +521,11 @@ pending nodes to explore. An example use of the context might be to hold the
 remaining portion of a key to be matched.
 
 The `accum` parameter is used like the accumulator in a fold, it can be updated
-on each matching key found.
+on each node explored.
+
+The `context` parameter is restored when back-tracking to explore other possible
+keys, but the `accum` parameter is carried accross the whole search. In that
+sense `context` is like a local variable and `accum` is like a global variable.
 
 -}
 match :
