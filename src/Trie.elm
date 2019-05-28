@@ -238,7 +238,7 @@ foldl fn accum trie =
 
 foldr : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
 foldr fn accum trie =
-    matchr
+    foldrInner
         (\keyPath maybeValue innerAccum ->
             case maybeValue of
                 Nothing ->
@@ -248,7 +248,28 @@ foldr fn accum trie =
                     fn keyPath value innerAccum
         )
         accum
-        trie
+        [ ( [], trie ) ]
+
+
+foldrInner :
+    (List comparable -> Maybe a -> b -> b)
+    -> b
+    -> List ( List comparable, Trie comparable a )
+    -> b
+foldrInner fn accum trail =
+    case trail of
+        [] ->
+            accum
+
+        ( keyPath, Trie maybeValue dict ) :: remaining ->
+            let
+                nextAccum =
+                    fn (List.reverse keyPath) maybeValue accum
+
+                nextTrail =
+                    Dict.foldl (\k trie steps -> ( k :: keyPath, trie ) :: steps) remaining dict
+            in
+            foldrInner fn nextAccum nextTrail
 
 
 filter : (List comparable -> a -> Bool) -> Trie comparable a -> Trie comparable a
@@ -440,49 +461,6 @@ matchInner fn accum trail =
                                 list
                     in
                     matchInner fn nextAccum nextTrail
-
-
-matchr :
-    (List comparable -> Maybe a -> b -> b)
-    -> b
-    -> Trie comparable a
-    -> b
-matchr fn accum trie =
-    matchrInner fn accum [ ( [], trie ) ]
-
-
-matchrInner :
-    (List comparable -> Maybe a -> b -> b)
-    -> b
-    -> List ( List comparable, Trie comparable a )
-    -> b
-matchrInner fn accum trail =
-    -- Check the head of the trail.
-    -- If there is a head, process it through fn.
-    -- No head, done
-    -- Check the result of fn.
-    -- Expand onto the trail unless its Break.
-    -- Recurse on matchInner.
-    case trail of
-        [] ->
-            accum
-
-        ( keyPath, Trie maybeValue dict ) :: remaining ->
-            let
-                nextAccum =
-                    fn (List.reverse keyPath) maybeValue accum
-
-                -- nextCtx =
-                --     case maybeKeyPart of
-                --         Nothing ->
-                --             ctx
-                --
-                --         Just k ->
-                --             k :: ctx
-                nextTrail =
-                    Dict.foldl (\k trie steps -> ( k :: keyPath, trie ) :: steps) remaining dict
-            in
-            matchrInner fn nextAccum nextTrail
 
 
 
