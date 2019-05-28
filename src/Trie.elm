@@ -1,5 +1,5 @@
 module Trie exposing
-    ( Trie(..)
+    ( Trie
     , empty, singleton, insert, update, remove
     , isEmpty, member, get, size
     , keys, values, toList, fromList
