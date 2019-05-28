@@ -173,22 +173,22 @@ get key trie =
 
 size : Trie comparable a -> Int
 size trie =
-    foldr (\_ _ accum -> accum + 1) 0 trie
+    foldl (\_ _ accum -> accum + 1) 0 trie
 
 
 keys : Trie comparable a -> List (List comparable)
 keys trie =
-    foldr (\key value keyList -> key :: keyList) [] trie
+    foldl (\key value keyList -> key :: keyList) [] trie
 
 
 values : Trie comparable a -> List a
 values trie =
-    foldr (\key value valueList -> value :: valueList) [] trie
+    foldl (\key value valueList -> value :: valueList) [] trie
 
 
 toList : Trie comparable a -> List ( List comparable, a )
 toList trie =
-    foldr (\key value list -> ( key, value ) :: list) [] trie
+    foldl (\key value list -> ( key, value ) :: list) [] trie
 
 
 fromList : List ( List comparable, a ) -> Trie comparable a
@@ -352,7 +352,7 @@ expand key trie =
             []
 
         Just innerTrie ->
-            foldr (\innerKey _ accum -> (key ++ innerKey) :: accum) [] innerTrie
+            foldl (\innerKey _ accum -> (key ++ innerKey) :: accum) [] innerTrie
 
 
 matches : List comparable -> Trie comparable a -> Bool
