@@ -251,10 +251,10 @@ foldr fn accum trie =
             in
             case maybeValue of
                 Nothing ->
-                    ( innerAccum, nextCtx, Wildcard )
+                    ( innerAccum, nextCtx )
 
                 Just value ->
-                    ( fn (List.reverse nextCtx) value innerAccum, nextCtx, Wildcard )
+                    ( fn (List.reverse nextCtx) value innerAccum, nextCtx )
         )
         accum
         []
@@ -453,7 +453,7 @@ matchInner fn accum trail =
 
 
 matchr :
-    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context ))
     -> b
     -> context
     -> Trie comparable a
@@ -463,7 +463,7 @@ matchr fn accum context trie =
 
 
 matchrInner :
-    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context ))
     -> b
     -> List ( List comparable, context, Trie comparable a )
     -> b
@@ -480,48 +480,13 @@ matchrInner fn accum trail =
 
         ( keyPath, context, Trie maybeValue dict ) :: remaining ->
             let
-                ( nextAccum, nextContext, nextMatch ) =
+                ( nextAccum, nextContext ) =
                     fn (List.head keyPath) maybeValue context accum
+
+                nextTrail =
+                    Dict.foldl (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
             in
-            case nextMatch of
-                Break ->
-                    matchInner fn nextAccum remaining
-
-                Wildcard ->
-                    let
-                        nextTrail =
-                            Dict.foldr (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
-                    in
-                    matchInner fn nextAccum nextTrail
-
-                ContinueIf k ->
-                    let
-                        nextTrail =
-                            case Dict.get k dict of
-                                Nothing ->
-                                    remaining
-
-                                Just trie ->
-                                    ( k :: keyPath, nextContext, trie ) :: remaining
-                    in
-                    matchInner fn nextAccum nextTrail
-
-                ContinueIfOneOf list ->
-                    let
-                        nextTrail =
-                            List.foldl
-                                (\k steps ->
-                                    case Dict.get k dict of
-                                        Nothing ->
-                                            steps
-
-                                        Just trie ->
-                                            ( k :: keyPath, nextContext, trie ) :: steps
-                                )
-                                remaining
-                                list
-                    in
-                    matchInner fn nextAccum nextTrail
+            matchrInner fn nextAccum nextTrail
 
 
 
