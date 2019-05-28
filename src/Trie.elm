@@ -238,7 +238,7 @@ foldl fn accum trie =
 
 foldr : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
 foldr fn accum trie =
-    match
+    matchr
         (\maybeKeyPart maybeValue ctx innerAccum ->
             let
                 nextCtx =
@@ -396,6 +396,78 @@ matchInner :
     -> List ( List comparable, context, Trie comparable a )
     -> b
 matchInner fn accum trail =
+    -- Check the head of the trail.
+    -- If there is a head, process it through fn.
+    -- No head, done
+    -- Check the result of fn.
+    -- Expand onto the trail unless its Break.
+    -- Recurse on matchInner.
+    case trail of
+        [] ->
+            accum
+
+        ( keyPath, context, Trie maybeValue dict ) :: remaining ->
+            let
+                ( nextAccum, nextContext, nextMatch ) =
+                    fn (List.head keyPath) maybeValue context accum
+            in
+            case nextMatch of
+                Break ->
+                    matchInner fn nextAccum remaining
+
+                Wildcard ->
+                    let
+                        nextTrail =
+                            Dict.foldr (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
+                    in
+                    matchInner fn nextAccum nextTrail
+
+                ContinueIf k ->
+                    let
+                        nextTrail =
+                            case Dict.get k dict of
+                                Nothing ->
+                                    remaining
+
+                                Just trie ->
+                                    ( k :: keyPath, nextContext, trie ) :: remaining
+                    in
+                    matchInner fn nextAccum nextTrail
+
+                ContinueIfOneOf list ->
+                    let
+                        nextTrail =
+                            List.foldl
+                                (\k steps ->
+                                    case Dict.get k dict of
+                                        Nothing ->
+                                            steps
+
+                                        Just trie ->
+                                            ( k :: keyPath, nextContext, trie ) :: steps
+                                )
+                                remaining
+                                list
+                    in
+                    matchInner fn nextAccum nextTrail
+
+
+matchr :
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
+    -> b
+    -> context
+    -> Trie comparable a
+    -> b
+matchr fn accum context trie =
+    matchrInner fn accum [ ( [], context, trie ) ]
+
+
+matchrInner :
+    (Maybe comparable -> Maybe a -> context -> b -> ( b, context, Match comparable ))
+    -> b
+    -> List ( List comparable, context, Trie comparable a )
+    -> b
+matchrInner fn accum trail =
     -- Check the head of the trail.
     -- If there is a head, process it through fn.
     -- No head, done
