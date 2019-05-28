@@ -51,9 +51,11 @@ suite =
         , DictIface.listOfValsFoldlAllKeys "list string" "trie" (list string) trie
         , DictIface.listOfValsFoldlAllKeys "list suffixString" "trie" (list suffixString) trie
         , DictIface.listOfValsFoldlIncreasing "list string" " dict" (list string) trie
+        , DictIface.listOfValsFoldlIncreasing "list suffixString" "trie" (list suffixString) trie
         , DictIface.listOfValsFoldrAllKeys "list string" "trie" (list string) trie
         , DictIface.listOfValsFoldrAllKeys "list suffixString" "trie" (list suffixString) trie
         , DictIface.listOfValsFoldrDecreasing "list string" " dict" (list string) trie
+        , DictIface.listOfValsFoldrDecreasing "list suffixString" "trie" (list suffixString) trie
         , DictIface.listOfValsListsAllKeys "list string" "trie" (list string) trie
         , DictIface.listOfValsListsAllKeys "list suffixString" "trie" (list suffixString) trie
         , DictIface.listOfValsListsAllValues "list string" "trie" (list string) trie
