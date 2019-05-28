@@ -239,25 +239,15 @@ foldl fn accum trie =
 foldr : (List comparable -> a -> b -> b) -> b -> Trie comparable a -> b
 foldr fn accum trie =
     matchr
-        (\maybeKeyPart maybeValue ctx innerAccum ->
-            let
-                nextCtx =
-                    case maybeKeyPart of
-                        Nothing ->
-                            ctx
-
-                        Just k ->
-                            k :: ctx
-            in
+        (\keyPath maybeValue innerAccum ->
             case maybeValue of
                 Nothing ->
-                    ( innerAccum, nextCtx )
+                    innerAccum
 
                 Just value ->
-                    ( fn (List.reverse nextCtx) value innerAccum, nextCtx )
+                    fn keyPath value innerAccum
         )
         accum
-        []
         trie
 
 
@@ -453,19 +443,18 @@ matchInner fn accum trail =
 
 
 matchr :
-    (Maybe comparable -> Maybe a -> context -> b -> ( b, context ))
+    (List comparable -> Maybe a -> b -> b)
     -> b
-    -> context
     -> Trie comparable a
     -> b
-matchr fn accum context trie =
-    matchrInner fn accum [ ( [], context, trie ) ]
+matchr fn accum trie =
+    matchrInner fn accum [ ( [], trie ) ]
 
 
 matchrInner :
-    (Maybe comparable -> Maybe a -> context -> b -> ( b, context ))
+    (List comparable -> Maybe a -> b -> b)
     -> b
-    -> List ( List comparable, context, Trie comparable a )
+    -> List ( List comparable, Trie comparable a )
     -> b
 matchrInner fn accum trail =
     -- Check the head of the trail.
@@ -478,13 +467,20 @@ matchrInner fn accum trail =
         [] ->
             accum
 
-        ( keyPath, context, Trie maybeValue dict ) :: remaining ->
+        ( keyPath, Trie maybeValue dict ) :: remaining ->
             let
-                ( nextAccum, nextContext ) =
-                    fn (List.head keyPath) maybeValue context accum
+                nextAccum =
+                    fn (List.reverse keyPath) maybeValue accum
 
+                -- nextCtx =
+                --     case maybeKeyPart of
+                --         Nothing ->
+                --             ctx
+                --
+                --         Just k ->
+                --             k :: ctx
                 nextTrail =
-                    Dict.foldl (\k trie steps -> ( k :: keyPath, nextContext, trie ) :: steps) remaining dict
+                    Dict.foldl (\k trie steps -> ( k :: keyPath, trie ) :: steps) remaining dict
             in
             matchrInner fn nextAccum nextTrail
 
