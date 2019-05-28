@@ -248,28 +248,36 @@ foldr fn accum trie =
                     fn keyPath value innerAccum
         )
         accum
-        [ ( [], trie ) ]
+        [ ( [], trie, False ) ]
 
 
 foldrInner :
     (List comparable -> Maybe a -> b -> b)
     -> b
-    -> List ( List comparable, Trie comparable a )
+    -> List ( List comparable, Trie comparable a, Bool )
     -> b
 foldrInner fn accum trail =
     case trail of
         [] ->
             accum
 
-        ( keyPath, Trie maybeValue dict ) :: remaining ->
-            let
-                nextAccum =
-                    fn (List.reverse keyPath) maybeValue accum
+        ( keyPath, Trie maybeValue dict, expanded ) :: remaining ->
+            case expanded of
+                True ->
+                    let
+                        nextAccum =
+                            fn (List.reverse keyPath) maybeValue accum
+                    in
+                    foldrInner fn nextAccum remaining
 
-                nextTrail =
-                    Dict.foldl (\k trie steps -> ( k :: keyPath, trie ) :: steps) remaining dict
-            in
-            foldrInner fn nextAccum nextTrail
+                False ->
+                    let
+                        nextTrail =
+                            Dict.foldl (\k trie steps -> ( k :: keyPath, trie, False ) :: steps)
+                                (( keyPath, Trie maybeValue dict, True ) :: remaining)
+                                dict
+                    in
+                    foldrInner fn accum nextTrail
 
 
 filter : (List comparable -> a -> Bool) -> Trie comparable a -> Trie comparable a
