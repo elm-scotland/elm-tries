@@ -5,9 +5,10 @@ import Fuzz exposing (int, list, string)
 import Fuzzers exposing (longString, suffixString)
 import StringTrie as Trie exposing (Trie)
 import Test exposing (Test, describe)
+import TrieIFace exposing (ITrie)
 
 
-trie : IDict String a (Trie a) b (Trie b) result {}
+trie : ITrie String a (Trie a) b (Trie b) result Char context
 trie =
     { empty = Trie.empty
     , singleton = Trie.singleton
@@ -31,6 +32,10 @@ trie =
     , intersect = Trie.intersect
     , diff = Trie.diff
     , merge = Trie.merge
+    , match = Trie.match
+    , expand = Trie.expand
+    , isSuffix = Trie.isSuffix
+    , subtrie = Trie.subtrie
     }
 
 
