@@ -5,7 +5,7 @@ module StringTrie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , Match, match, expand, matches, subtrie
+    , Match, match, expand, isSuffix, subtrie
     )
 
 {-| A trie mapping unique strings to values.
@@ -43,7 +43,7 @@ module StringTrie exposing
 
 # Trie specific search operations
 
-@docs Match, match, expand, matches, subtrie
+@docs Match, match, expand, isSuffix, subtrie
 
 -}
 
@@ -258,17 +258,17 @@ merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
 
 {-| Given a suffix, finds all keys that begin with that suffix.
 -}
-expand : String -> Trie a -> List String
+expand : String -> Trie a -> List ( String, a )
 expand key trie =
     Trie.expand (String.toList key) trie
-        |> List.map String.fromList
+        |> List.map (Tuple.mapFirst String.fromList)
 
 
 {-| Given a suffix, checks if there are keys that begin with that suffix.
 -}
-matches : String -> Trie a -> Bool
-matches key trie =
-    Trie.matches (String.toList key) trie
+isSuffix : String -> Trie a -> Bool
+isSuffix key trie =
+    Trie.isSuffix (String.toList key) trie
 
 
 {-| Given a suffix, finds any sub-trie containing the key-value pairs where the
@@ -341,11 +341,9 @@ match fn accum context trie =
 
 
 -- String specific Trie functions.
--- expandIgnoreCase : String -> Trie a -> List String
--- matchesIgnoreCase : String -> Trie a -> Bool
 
 
-expandIgnoreCase : String -> Trie a -> List String
+expandIgnoreCase : String -> Trie a -> List ( String, a )
 expandIgnoreCase key trie =
     let
         _ =

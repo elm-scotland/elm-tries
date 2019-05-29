@@ -5,7 +5,7 @@ module Trie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , Match(..), match, expand, matches, subtrie
+    , Match(..), match, expand, isSuffix, subtrie
     )
 
 {-| A trie mapping unique strings to values.
@@ -43,7 +43,7 @@ module Trie exposing
 
 # Trie specific search operations.
 
-@docs Match, match, expand, matches, subtrie
+@docs Match, match, expand, isSuffix, subtrie
 
 -}
 
@@ -431,20 +431,20 @@ merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
 
 {-| Given a suffix, finds all keys that begin with that suffix.
 -}
-expand : List comparable -> Trie comparable a -> List (List comparable)
+expand : List comparable -> Trie comparable a -> List ( List comparable, a )
 expand key trie =
     case subtrie key trie of
         Nothing ->
             []
 
         Just innerTrie ->
-            foldl (\innerKey _ accum -> (key ++ innerKey) :: accum) [] innerTrie
+            toList innerTrie
 
 
 {-| Given a suffix, checks if there are keys that begin with that suffix.
 -}
-matches : List comparable -> Trie comparable a -> Bool
-matches key trie =
+isSuffix : List comparable -> Trie comparable a -> Bool
+isSuffix key trie =
     case subtrie key trie of
         Nothing ->
             False
