@@ -26,36 +26,37 @@ import Set exposing (Set)
 import Test exposing (Test, fuzz)
 
 
-type alias IDict comparable v dict b dictb result =
-    { empty : dict
-    , singleton : comparable -> v -> dict
-    , insert : comparable -> v -> dict -> dict
-    , update : comparable -> (Maybe v -> Maybe v) -> dict -> dict
-    , remove : comparable -> dict -> dict
-    , isEmpty : dict -> Bool
-    , member : comparable -> dict -> Bool
-    , get : comparable -> dict -> Maybe v
-    , size : dict -> Int
-    , keys : dict -> List comparable
-    , values : dict -> List v
-    , toList : dict -> List ( comparable, v )
-    , fromList : List ( comparable, v ) -> dict
-    , map : (comparable -> v -> b) -> dict -> dictb
-    , foldl : (comparable -> v -> b -> b) -> b -> dict -> b
-    , foldr : (comparable -> v -> b -> b) -> b -> dict -> b
-    , filter : (comparable -> v -> Bool) -> dict -> dict
-    , partition : (comparable -> v -> Bool) -> dict -> ( dict, dict )
-    , union : dict -> dict -> dict
-    , intersect : dict -> dict -> dict
-    , diff : dict -> dictb -> dict
-    , merge :
-        (comparable -> v -> result -> result)
-        -> (comparable -> v -> b -> result -> result)
-        -> (comparable -> b -> result -> result)
-        -> dict
-        -> dictb
-        -> result
-        -> result
+type alias IDict comparable v dict b dictb result x =
+    { x
+        | empty : dict
+        , singleton : comparable -> v -> dict
+        , insert : comparable -> v -> dict -> dict
+        , update : comparable -> (Maybe v -> Maybe v) -> dict -> dict
+        , remove : comparable -> dict -> dict
+        , isEmpty : dict -> Bool
+        , member : comparable -> dict -> Bool
+        , get : comparable -> dict -> Maybe v
+        , size : dict -> Int
+        , keys : dict -> List comparable
+        , values : dict -> List v
+        , toList : dict -> List ( comparable, v )
+        , fromList : List ( comparable, v ) -> dict
+        , map : (comparable -> v -> b) -> dict -> dictb
+        , foldl : (comparable -> v -> b -> b) -> b -> dict -> b
+        , foldr : (comparable -> v -> b -> b) -> b -> dict -> b
+        , filter : (comparable -> v -> Bool) -> dict -> dict
+        , partition : (comparable -> v -> Bool) -> dict -> ( dict, dict )
+        , union : dict -> dict -> dict
+        , intersect : dict -> dict -> dict
+        , diff : dict -> dictb -> dict
+        , merge :
+            (comparable -> v -> result -> result)
+            -> (comparable -> v -> b -> result -> result)
+            -> (comparable -> b -> result -> result)
+            -> dict
+            -> dictb
+            -> result
+            -> result
     }
 
 
@@ -63,7 +64,7 @@ type alias IDict comparable v dict b dictb result =
 -- Key type specific tests.
 
 
-singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result -> Test
+singletonEmptyStringContainsVal : String -> String -> Fuzzer String -> IDict String String dict b dictb result x -> Test
 singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -74,7 +75,7 @@ singletonEmptyStringContainsVal fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfNumsDoubledAllEven : String -> String -> Fuzzer (List Int) -> IDict String Int dict b dictb result -> Test
+listOfNumsDoubledAllEven : String -> String -> Fuzzer (List Int) -> IDict String Int dict b dictb result x -> Test
 listOfNumsDoubledAllEven fuzzName implName fuzzer dictImpl =
     let
         doubleOdd keys trie =
@@ -125,7 +126,7 @@ listOfNumsDoubledAllEven fuzzName implName fuzzer dictImpl =
 -- Generic comparable key tests.
 
 
-emptyIsEmpty : String -> IDict comparable a dict b dictb result -> Test
+emptyIsEmpty : String -> IDict comparable a dict b dictb result x -> Test
 emptyIsEmpty implName dictImpl =
     let
         test () =
@@ -134,7 +135,7 @@ emptyIsEmpty implName dictImpl =
     Test.test "Check empty trie reports isEmpty." test
 
 
-emptyContainsNoVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result -> Test
+emptyContainsNoVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result x -> Test
 emptyContainsNoVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -143,7 +144,7 @@ emptyContainsNoVal fuzzName implName fuzzer dictImpl =
     fuzz fuzzer ("Checks an empty " ++ implName ++ " does not get any keys (" ++ fuzzName ++ ").") test
 
 
-nonEmptyIsNotEmpty : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result -> Test
+nonEmptyIsNotEmpty : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result x -> Test
 nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -161,7 +162,7 @@ nonEmptyIsNotEmpty fuzzName implName fuzzer dictImpl =
         test
 
 
-singletonContainsVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result -> Test
+singletonContainsVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result x -> Test
 singletonContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -172,7 +173,7 @@ singletonContainsVal fuzzName implName fuzzer dictImpl =
         test
 
 
-emptyInsertStringContainsVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result -> Test
+emptyInsertStringContainsVal : String -> String -> Fuzzer comparable -> IDict comparable comparable dict b dictb result x -> Test
 emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
     let
         test val =
@@ -183,7 +184,7 @@ emptyInsertStringContainsVal fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsContainsAllVals : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result -> Test
+listOfValsContainsAllVals : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result x -> Test
 listOfValsContainsAllVals fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -200,7 +201,7 @@ listOfValsContainsAllVals fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsReportsSizeOk : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result -> Test
+listOfValsReportsSizeOk : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result x -> Test
 listOfValsReportsSizeOk fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -218,7 +219,7 @@ listOfValsReportsSizeOk fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsAllKeysMembers : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result -> Test
+listOfValsAllKeysMembers : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result x -> Test
 listOfValsAllKeysMembers fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -235,7 +236,7 @@ listOfValsAllKeysMembers fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsRemovedContainsNone : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result -> Test
+listOfValsRemovedContainsNone : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result x -> Test
 listOfValsRemovedContainsNone fuzzName implName fuzzer dictImpl =
     let
         removeAll keys trie =
@@ -256,7 +257,7 @@ listOfValsRemovedContainsNone fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsListsAllKeys : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result -> Test
+listOfValsListsAllKeys : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result x -> Test
 listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -274,7 +275,7 @@ listOfValsListsAllKeys fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsListsAllValues : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result -> Test
+listOfValsListsAllValues : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict b dictb result x -> Test
 listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -292,7 +293,7 @@ listOfValsListsAllValues fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsFoldlAllKeys : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict (Set comparable) dictb result -> Test
+listOfValsFoldlAllKeys : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict (Set comparable) dictb result x -> Test
 listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -310,7 +311,7 @@ listOfValsFoldlAllKeys fuzzName implName fuzzer dictImpl =
         test
 
 
-listOfValsFoldrAllKeys : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict (Set comparable) dictb result -> Test
+listOfValsFoldrAllKeys : String -> String -> Fuzzer (List comparable) -> IDict comparable comparable dict (Set comparable) dictb result x -> Test
 listOfValsFoldrAllKeys fuzzName implName fuzzer dictImpl =
     let
         test possiblyEmptyVals =
@@ -332,7 +333,7 @@ listOfValsFoldlIncreasing :
     String
     -> String
     -> Fuzzer (List comparable)
-    -> IDict comparable comparable dict ( Maybe comparable, Maybe ( comparable, comparable ) ) dictb result
+    -> IDict comparable comparable dict ( Maybe comparable, Maybe ( comparable, comparable ) ) dictb result x
     -> Test
 listOfValsFoldlIncreasing fuzzName implName fuzzer dictImpl =
     let
@@ -372,7 +373,7 @@ listOfValsFoldrDecreasing :
     String
     -> String
     -> Fuzzer (List comparable)
-    -> IDict comparable comparable dict ( Maybe comparable, Maybe ( comparable, comparable ) ) dictb result
+    -> IDict comparable comparable dict ( Maybe comparable, Maybe ( comparable, comparable ) ) dictb result x
     -> Test
 listOfValsFoldrDecreasing fuzzName implName fuzzer dictImpl =
     let

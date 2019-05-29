@@ -7,7 +7,7 @@ import Fuzzers exposing (longString, suffixString)
 import Test exposing (Test, describe)
 
 
-dict : IDict comparable v (Dict comparable v) b (Dict comparable b) result
+dict : IDict comparable v (Dict comparable v) b (Dict comparable b) result {}
 dict =
     { empty = Dict.empty
     , singleton = Dict.singleton

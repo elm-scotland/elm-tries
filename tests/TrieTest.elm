@@ -4,10 +4,29 @@ import DictIface exposing (IDict)
 import Fuzz exposing (int, list, string)
 import Fuzzers exposing (listChars, longString, stringToListChars, suffixString)
 import Test exposing (Test, describe)
-import Trie as Trie exposing (Trie)
+import Trie as Trie exposing (Match, Trie)
 
 
-trie : IDict (List comparable) a (Trie comparable a) b (Trie comparable b) result
+type alias ITrie comparable v dict b dictb result comparable1 context =
+    IDict comparable
+        v
+        dict
+        b
+        dictb
+        result
+        { match :
+            (Maybe comparable1 -> Maybe v -> context -> b -> ( b, context, Match comparable1 ))
+            -> b
+            -> context
+            -> dict
+            -> b
+        , expand : comparable -> dict -> List ( comparable, v )
+        , isSuffix : comparable -> dict -> Bool
+        , subtrie : comparable -> dict -> Maybe dict
+        }
+
+
+trie : ITrie (List comparable) a (Trie comparable a) b (Trie comparable b) result comparable context
 trie =
     { empty = Trie.empty
     , singleton = Trie.singleton
@@ -31,6 +50,10 @@ trie =
     , intersect = Trie.intersect
     , diff = Trie.diff
     , merge = Trie.merge
+    , match = Trie.match
+    , expand = Trie.expand
+    , isSuffix = Trie.isSuffix
+    , subtrie = Trie.subtrie
     }
 
 
