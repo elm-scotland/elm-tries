@@ -1,6 +1,10 @@
 module TrieIFace exposing (ITrie)
 
 import DictIface exposing (IDict)
+import Expect exposing (Expectation)
+import Fuzz exposing (Fuzzer)
+import Set exposing (Set)
+import Test exposing (Test, fuzz)
 import Trie as Trie exposing (Match, Trie)
 
 
@@ -21,3 +25,25 @@ type alias ITrie comparable v dict b dictb result comparable1 context =
         , isSuffix : comparable -> dict -> Bool
         , subtrie : comparable -> dict -> Maybe dict
         }
+
+
+expandTest :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> ITrie comparable comparable dict b dictb result comparable1 context
+    -> Test
+expandTest fuzzName implName fuzzer dictImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
+                        |> always (Expect.fail "todo")
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " with ..., checking ... (" ++ fuzzName ++ ").")
+        test
