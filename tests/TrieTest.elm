@@ -5,7 +5,7 @@ import Fuzz exposing (int, list, string)
 import Fuzzers exposing (listChars, longString, stringToListChars, suffixString)
 import Test exposing (Test, describe)
 import Trie as Trie exposing (Trie)
-import TrieIFace exposing (ITrie)
+import TrieIface exposing (ITrie)
 
 
 trie : ITrie (List comparable) a (Trie comparable a) b (Trie comparable b) result comparable context

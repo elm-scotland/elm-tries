@@ -5,7 +5,7 @@ import Fuzz exposing (int, list, string)
 import Fuzzers exposing (longString, suffixString)
 import StringTrie as Trie exposing (Trie)
 import Test exposing (Test, describe)
-import TrieIFace exposing (ITrie)
+import TrieIface exposing (ITrie)
 
 
 trie : ITrie String a (Trie a) b (Trie b) result Char context
@@ -69,4 +69,5 @@ suite =
         , DictIface.listOfValsRemovedContainsNone "list suffixString" "trie" (list suffixString) trie
         , DictIface.listOfValsReportsSizeOk "list string" "trie" (list string) trie
         , DictIface.listOfValsReportsSizeOk "list <| longString 10" "trie" (list <| longString 10) trie
+        , TrieIface.expandTest "list suffixString" "trie" (list suffixString) trie
         ]

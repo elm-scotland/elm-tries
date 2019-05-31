@@ -1,4 +1,7 @@
-module TrieIFace exposing (ITrie)
+module TrieIface exposing
+    ( ITrie
+    , expandTest
+    )
 
 import DictIface exposing (IDict)
 import Expect exposing (Expectation)
@@ -42,7 +45,7 @@ expandTest fuzzName implName fuzzer dictImpl =
 
                 vals ->
                     List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
-                        |> (\trie -> Expect.all (List.map (\val list -> dictImpl.expand val trie |> Expect.true "not member of trie") vals) trie)
+                        |> (\trie -> Expect.all (List.map (\val list -> List.isEmpty (dictImpl.expand val trie) |> Expect.false "key does not expland to itself") vals) trie)
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with ..., checking ... (" ++ fuzzName ++ ").")
