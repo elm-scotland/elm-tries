@@ -354,7 +354,7 @@ expandIgnoreCase key trie =
                             ( accum, ( [], matchedKey ), Break )
 
                         Just val ->
-                            ( ( String.fromList (List.reverse nextMatchedKey), val ), ( [], matchedKey ), Break )
+                            ( ( String.fromList (List.reverse matchedKey), val ) :: accum, ( [], matchedKey ), Break )
 
                 head :: nextRemainingKey ->
                     let

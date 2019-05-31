@@ -42,7 +42,7 @@ expandTest fuzzName implName fuzzer dictImpl =
 
                 vals ->
                     List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
-                        |> always (Expect.fail "todo")
+                        |> (\trie -> Expect.all (List.map (\val list -> dictImpl.expand val trie |> Expect.true "not member of trie") vals) trie)
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with ..., checking ... (" ++ fuzzName ++ ").")
