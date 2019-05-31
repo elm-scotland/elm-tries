@@ -345,11 +345,44 @@ match fn accum context trie =
 
 expandIgnoreCase : String -> Trie a -> List ( String, a )
 expandIgnoreCase key trie =
-    let
-        _ =
-            Debug.todo "expandIgnoreCase"
-    in
-    match (\maybeChar maybeValue ctx accum -> ( accum, ctx, Wildcard ))
+    match
+        (\maybeChar maybeValue ( remainingKey, matchedKey ) accum ->
+            case remainingKey of
+                [] ->
+                    case maybeValue of
+                        Nothing ->
+                            ( accum, ( [], matchedKey ), Break )
+
+                        Just val ->
+                            ( ( String.fromList (List.reverse nextMatchedKey), val ), ( [], matchedKey ), Break )
+
+                head :: nextRemainingKey ->
+                    let
+                        nextMatchedKey =
+                            case maybeChar of
+                                Nothing ->
+                                    matchedKey
+
+                                Just c ->
+                                    c :: matchedKey
+
+                        nextMatch =
+                            if Char.toLower head == Char.toUpper head then
+                                ContinueIf head
+
+                            else
+                                ContinueIfOneOf [ Char.toLower head, Char.toUpper head ]
+
+                        nextAccum =
+                            case maybeValue of
+                                Nothing ->
+                                    accum
+
+                                Just val ->
+                                    ( String.fromList (List.reverse nextMatchedKey), val ) :: accum
+                    in
+                    ( nextAccum, ( nextRemainingKey, nextMatchedKey ), nextMatch )
+        )
         []
-        (String.toList key)
+        ( String.toList key, [] )
         trie
