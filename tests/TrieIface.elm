@@ -45,7 +45,11 @@ expandTest fuzzName implName fuzzer dictImpl =
 
                 vals ->
                     List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
-                        |> (\trie -> Expect.all (List.map (\val list -> List.isEmpty (dictImpl.expand val trie) |> Expect.false "key does not expland to itself") vals) trie)
+                        |> (\trie -> Expect.all (List.map (\val list -> List.isEmpty (dictImpl.expand val trie |> Debug.log "expand") |> Expect.false "key does not expland to itself") vals) trie)
+
+        -- Every key suffix expands to some results.
+        -- The results all have the expanded suffix as a suffix
+        -- k-v pairs in the results match up
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with ..., checking ... (" ++ fuzzName ++ ").")
