@@ -432,13 +432,13 @@ merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
 {-| Given a suffix, finds all keys that begin with that suffix.
 -}
 expand : List comparable -> Trie comparable a -> List ( List comparable, a )
-expand key trie =
-    case subtrie key trie of
+expand suffix trie =
+    case subtrie suffix trie of
         Nothing ->
             []
 
         Just innerTrie ->
-            toList innerTrie
+            foldl (\key value list -> ( suffix ++ key, value ) :: list) [] innerTrie
 
 
 {-| Given a suffix, checks if there are keys that begin with that suffix.
