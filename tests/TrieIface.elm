@@ -36,21 +36,51 @@ expandTest :
     -> Fuzzer (List comparable)
     -> ITrie comparable comparable dict b dictb result comparable1 context
     -> Test
-expandTest fuzzName implName fuzzer dictImpl =
+expandTest fuzzName implName fuzzer trieImpl =
     let
+        checkVals fn vals =
+            List.map fn vals
+
+        -- Every key expands to some results.
+        expectKeyExpand val trie =
+            List.isEmpty (trieImpl.expand val trie)
+                |> Expect.false "key does not expland to itself"
+
+        -- Every key suffix expands to some results.
+        -- expectAllKeySuffixesExpand val trie =
+        --     Expect.pass
+        -- The results all have the expanded suffix as a suffix
+        --
+        -- expectKeysHaveExpandedSuffix val trie =
+        --     let
+        --         result =
+        --             trieImpl.expand val trie
+        --     in
+        --     Expect.all (List.map (\( k, v ) -> \sfx -> Expect.pass) result) val
+        --
+        -- k-v pairs in the results match up
+        expectKvPairs val trie =
+            let
+                result =
+                    trieImpl.expand val trie
+            in
+            Expect.all (List.map (\( k, v ) -> \() -> Expect.equal k v) result) ()
+
         test possiblyEmptyVals =
             case possiblyEmptyVals of
                 [] ->
                     Expect.equal [] []
 
                 vals ->
-                    List.foldl (\val trie -> dictImpl.insert val val trie) dictImpl.empty vals
-                        |> (\trie -> Expect.all (List.map (\val list -> List.isEmpty (dictImpl.expand val trie |> Debug.log "expand") |> Expect.false "key does not expland to itself") vals) trie)
-
-        -- Every key suffix expands to some results.
-        -- The results all have the expanded suffix as a suffix
-        -- k-v pairs in the results match up
+                    List.foldl (\val trie -> trieImpl.insert val val trie) trieImpl.empty vals
+                        |> (\trie ->
+                                Expect.all
+                                    (checkVals expectKeyExpand vals
+                                        ++ checkVals expectKvPairs vals
+                                    )
+                                    trie
+                           )
     in
     fuzz fuzzer
-        ("Creates a " ++ implName ++ " with ..., checking ... (" ++ fuzzName ++ ").")
+        ("Creates a " ++ implName ++ " with a list of vals, checking expansion of keys and suffixes of them (" ++ fuzzName ++ ").")
         test
