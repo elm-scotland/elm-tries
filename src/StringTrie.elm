@@ -6,6 +6,7 @@ module StringTrie exposing
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     , Match, match, expand, isSuffix, subtrie
+    , expandIgnoreCase
     )
 
 {-| A trie mapping unique strings to values.
@@ -44,6 +45,11 @@ module StringTrie exposing
 # Trie specific search operations
 
 @docs Match, match, expand, isSuffix, subtrie
+
+
+# String specific operations
+
+@docs expandIgnoreCase
 
 -}
 
@@ -343,6 +349,9 @@ match fn accum context trie =
 -- String specific Trie functions.
 
 
+{-| Given a suffix, finds all keys that begin with that suffix ignoring the case
+of characters in the suffix or in the trie.
+-}
 expandIgnoreCase : String -> Trie a -> List ( String, a )
 expandIgnoreCase key trie =
     match
