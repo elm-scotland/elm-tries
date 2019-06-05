@@ -1,4 +1,4 @@
-module Fuzzers exposing (listChars, longString, stringToListChars, suffixString)
+module Fuzzers exposing (listChars, longString, stringToListChars, prefixString)
 
 import Fuzz exposing (Fuzzer, int, list, string)
 
@@ -7,8 +7,8 @@ import Fuzz exposing (Fuzzer, int, list, string)
 -- Fuzzers targeted at trie testing.
 
 
-suffixString : Fuzzer String
-suffixString =
+prefixString : Fuzzer String
+prefixString =
     Fuzz.frequency
         [ ( 4, Fuzz.constant "a" )
         , ( 3, Fuzz.constant "b" )

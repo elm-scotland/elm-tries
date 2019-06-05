@@ -25,7 +25,7 @@ type alias ITrie comparable v dict b dictb result comparable1 context =
             -> dict
             -> b
         , expand : comparable -> dict -> List ( comparable, v )
-        , isSuffix : comparable -> dict -> Bool
+        , isPrefix : comparable -> dict -> Bool
         , subtrie : comparable -> dict -> Maybe dict
         }
 
@@ -46,12 +46,12 @@ expandTest fuzzName implName fuzzer trieImpl =
             List.isEmpty (trieImpl.expand val trie)
                 |> Expect.false "key does not expland to itself"
 
-        -- Every key suffix expands to some results.
-        -- expectAllKeySuffixesExpand val trie =
+        -- Every key prefix expands to some results.
+        -- expectAllKeyPrefixesExpand val trie =
         --     Expect.pass
-        -- The results all have the expanded suffix as a suffix
+        -- The results all have the expanded prefix as a prefix
         --
-        -- expectKeysHaveExpandedSuffix val trie =
+        -- expectKeysHaveExpandedPrefix val trie =
         --     let
         --         result =
         --             trieImpl.expand val trie
@@ -82,5 +82,5 @@ expandTest fuzzName implName fuzzer trieImpl =
                            )
     in
     fuzz fuzzer
-        ("Creates a " ++ implName ++ " with a list of vals, checking expansion of keys and suffixes of them (" ++ fuzzName ++ ").")
+        ("Creates a " ++ implName ++ " with a list of vals, checking expansion of keys and prefixes of them (" ++ fuzzName ++ ").")
         test

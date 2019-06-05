@@ -3,7 +3,7 @@ module DictTest exposing (suite)
 import Dict exposing (Dict)
 import DictIface exposing (IDict)
 import Fuzz exposing (int, list, string)
-import Fuzzers exposing (longString, suffixString)
+import Fuzzers exposing (longString, prefixString)
 import Test exposing (Test, describe)
 
 

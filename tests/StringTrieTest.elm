@@ -2,7 +2,7 @@ module StringTrieTest exposing (suite)
 
 import DictIface exposing (IDict)
 import Fuzz exposing (int, list, string)
-import Fuzzers exposing (longString, suffixString)
+import Fuzzers exposing (longString, prefixString)
 import StringTrie as Trie exposing (Trie)
 import Test exposing (Test, describe)
 import TrieIface exposing (ITrie)
@@ -34,7 +34,7 @@ trie =
     , merge = Trie.merge
     , match = Trie.match
     , expand = Trie.expand
-    , isSuffix = Trie.isSuffix
+    , isPrefix = Trie.isPrefix
     , subtrie = Trie.subtrie
     }
 
@@ -50,24 +50,24 @@ suite =
         , DictIface.singletonEmptyStringContainsVal "string" "trie" string trie
         , DictIface.listOfNumsDoubledAllEven "list int" "trie" (list int) trie
         , DictIface.listOfValsAllKeysMembers "list string" "trie" (list string) trie
-        , DictIface.listOfValsAllKeysMembers "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsAllKeysMembers "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsContainsAllVals "list string" "trie" (list string) trie
-        , DictIface.listOfValsContainsAllVals "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsContainsAllVals "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsFoldlAllKeys "list string" "trie" (list string) trie
-        , DictIface.listOfValsFoldlAllKeys "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsFoldlAllKeys "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsFoldlIncreasing "list string" " dict" (list string) trie
-        , DictIface.listOfValsFoldlIncreasing "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsFoldlIncreasing "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsFoldrAllKeys "list string" "trie" (list string) trie
-        , DictIface.listOfValsFoldrAllKeys "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsFoldrAllKeys "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsFoldrDecreasing "list string" " dict" (list string) trie
-        , DictIface.listOfValsFoldrDecreasing "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsFoldrDecreasing "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsListsAllKeys "list string" "trie" (list string) trie
-        , DictIface.listOfValsListsAllKeys "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsListsAllKeys "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsListsAllValues "list string" "trie" (list string) trie
-        , DictIface.listOfValsListsAllValues "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsListsAllValues "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsRemovedContainsNone "list string" "trie" (list string) trie
-        , DictIface.listOfValsRemovedContainsNone "list suffixString" "trie" (list suffixString) trie
+        , DictIface.listOfValsRemovedContainsNone "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsReportsSizeOk "list string" "trie" (list string) trie
         , DictIface.listOfValsReportsSizeOk "list <| longString 10" "trie" (list <| longString 10) trie
-        , TrieIface.expandTest "list suffixString" "trie" (list suffixString) trie
+        , TrieIface.expandTest "list prefixString" "trie" (list prefixString) trie
         ]

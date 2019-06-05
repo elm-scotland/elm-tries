@@ -5,7 +5,7 @@ module Trie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , Match(..), match, expand, isSuffix, subtrie
+    , Match(..), match, expand, isPrefix, subtrie
     )
 
 {-| A trie mapping unique strings to values.
@@ -43,7 +43,7 @@ module Trie exposing
 
 # Trie specific search operations.
 
-@docs Match, match, expand, isSuffix, subtrie
+@docs Match, match, expand, isPrefix, subtrie
 
 -}
 
@@ -53,8 +53,8 @@ import Dict exposing (Dict)
 {-| A trie mapping keys to values, where the keys are `List comparable`.
 
 A `Trie` is a lot like a `Dict` except the keys are expanded into lists. Keys
-that have common lists as suffixes share space, and it is possible to efficiently
-search for keys matching a particular suffix.
+that have common lists as prefixes share space, and it is possible to efficiently
+search for keys matching a particular prefix.
 
 -}
 type Trie comparable a
@@ -166,7 +166,7 @@ isEmpty trie =
     size trie == 0
 
 
-{-| TODO: I think this will match key suffixes? Probably should not for the Dict API.
+{-| TODO: I think this will match key prefixes? Probably should not for the Dict API.
 -}
 member : List comparable -> Trie comparable a -> Bool
 member key trie =
@@ -429,22 +429,22 @@ merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
     List.foldl (\( k, v ) result -> leftStep k v result) intermediateResult leftovers
 
 
-{-| Given a suffix, finds all keys that begin with that suffix.
+{-| Given a prefix, finds all keys that begin with that prefix.
 -}
 expand : List comparable -> Trie comparable a -> List ( List comparable, a )
-expand suffix trie =
-    case subtrie suffix trie of
+expand prefix trie =
+    case subtrie prefix trie of
         Nothing ->
             []
 
         Just innerTrie ->
-            foldl (\key value list -> ( suffix ++ key, value ) :: list) [] innerTrie
+            foldl (\key value list -> ( prefix ++ key, value ) :: list) [] innerTrie
 
 
-{-| Given a suffix, checks if there are keys that begin with that suffix.
+{-| Given a prefix, checks if there are keys that begin with that prefix.
 -}
-isSuffix : List comparable -> Trie comparable a -> Bool
-isSuffix key trie =
+isPrefix : List comparable -> Trie comparable a -> Bool
+isPrefix key trie =
     case subtrie key trie of
         Nothing ->
             False
@@ -453,9 +453,9 @@ isSuffix key trie =
             isJust maybeValue
 
 
-{-| Given a suffix, finds any sub-trie containing the key-value pairs where the
-original keys begin with that suffix. The keys in the sub-trie will only consist
-of the remaining portion of the key after the suffix.
+{-| Given a prefix, finds any sub-trie containing the key-value pairs where the
+original keys begin with that prefix. The keys in the sub-trie will only consist
+of the remaining portion of the key after the prefix.
 -}
 subtrie : List comparable -> Trie comparable a -> Maybe (Trie comparable a)
 subtrie key ((Trie maybeValue dict) as trie) =
@@ -478,8 +478,8 @@ subtrie key ((Trie maybeValue dict) as trie) =
 
 {-| `Match` describes how a flexible search over a trie will proceed.
 
-  - `Break` - do not explore any more below the current suffix.
-  - `Wildcard` - continue with all possible next keys below the current suffix.
+  - `Break` - do not explore any more below the current prefix.
+  - `Wildcard` - continue with all possible next keys below the current prefix.
   - `ContinueIf` - continue with the next key provided it exactly matches the comparable specified.
   - `ContinueIfOneOf` - continue with the next key provided it matches one of the comparables specified.
 

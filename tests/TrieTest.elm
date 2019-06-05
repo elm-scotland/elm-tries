@@ -2,7 +2,7 @@ module TrieTest exposing (suite)
 
 import DictIface exposing (IDict)
 import Fuzz exposing (int, list, string)
-import Fuzzers exposing (listChars, longString, stringToListChars, suffixString)
+import Fuzzers exposing (listChars, longString, stringToListChars, prefixString)
 import Test exposing (Test, describe)
 import Trie as Trie exposing (Trie)
 import TrieIface exposing (ITrie)
@@ -34,7 +34,7 @@ trie =
     , merge = Trie.merge
     , match = Trie.match
     , expand = Trie.expand
-    , isSuffix = Trie.isSuffix
+    , isPrefix = Trie.isPrefix
     , subtrie = Trie.subtrie
     }
 
@@ -48,23 +48,23 @@ suite =
         , DictIface.nonEmptyIsNotEmpty "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
         , DictIface.singletonContainsVal "listChars" "trie" listChars trie
         , DictIface.listOfValsAllKeysMembers "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
-        , DictIface.listOfValsAllKeysMembers "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsAllKeysMembers "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsContainsAllVals "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
-        , DictIface.listOfValsContainsAllVals "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsContainsAllVals "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsFoldlAllKeys "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
-        , DictIface.listOfValsFoldlAllKeys "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsFoldlAllKeys "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsFoldlIncreasing "list (stringToListChars string)" " dict" (list (stringToListChars string)) trie
-        , DictIface.listOfValsFoldlIncreasing "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsFoldlIncreasing "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsFoldrAllKeys "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
-        , DictIface.listOfValsFoldrAllKeys "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsFoldrAllKeys "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsFoldrDecreasing "list (stringToListChars string)" " dict" (list (stringToListChars string)) trie
-        , DictIface.listOfValsFoldrDecreasing "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsFoldrDecreasing "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsListsAllKeys "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
-        , DictIface.listOfValsListsAllKeys "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsListsAllKeys "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsListsAllValues "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
-        , DictIface.listOfValsListsAllValues "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsListsAllValues "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsRemovedContainsNone "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
-        , DictIface.listOfValsRemovedContainsNone "list (stringToListChars suffixString)" "trie" (list (stringToListChars suffixString)) trie
+        , DictIface.listOfValsRemovedContainsNone "list (stringToListChars prefixString)" "trie" (list (stringToListChars prefixString)) trie
         , DictIface.listOfValsReportsSizeOk "list (stringToListChars string)" "trie" (list (stringToListChars string)) trie
         , DictIface.listOfValsReportsSizeOk "list <| stringToListChars <| longString 10" "trie" (list <| stringToListChars <| longString 10) trie
         ]

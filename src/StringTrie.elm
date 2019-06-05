@@ -5,7 +5,7 @@ module StringTrie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , Match, match, expand, isSuffix, subtrie
+    , Match, match, expand, isPrefix, subtrie
     , expandIgnoreCase
     )
 
@@ -44,7 +44,7 @@ module StringTrie exposing
 
 # Trie specific search operations
 
-@docs Match, match, expand, isSuffix, subtrie
+@docs Match, match, expand, isPrefix, subtrie
 
 
 # String specific operations
@@ -60,8 +60,8 @@ import Trie exposing (Match(..))
 {-| A trie mapping keys to values, where the keys are `String`.
 
 This version of `Trie` is a lot like a `Dict` except the keys are must be
-strings. Keys that have common suffixes share space, and it is possible to
-efficiently search for keys matching a particular suffix.
+strings. Keys that have common prefixes share space, and it is possible to
+efficiently search for keys matching a particular prefix.
 
 -}
 type alias Trie a =
@@ -262,7 +262,7 @@ merge leftStep bothStep rightStep leftTrie rightTrie initialResult =
         initialResult
 
 
-{-| Given a suffix, finds all keys that begin with that suffix.
+{-| Given a prefix, finds all keys that begin with that prefix.
 -}
 expand : String -> Trie a -> List ( String, a )
 expand key trie =
@@ -270,16 +270,16 @@ expand key trie =
         |> List.map (Tuple.mapFirst String.fromList)
 
 
-{-| Given a suffix, checks if there are keys that begin with that suffix.
+{-| Given a prefix, checks if there are keys that begin with that prefix.
 -}
-isSuffix : String -> Trie a -> Bool
-isSuffix key trie =
-    Trie.isSuffix (String.toList key) trie
+isPrefix : String -> Trie a -> Bool
+isPrefix key trie =
+    Trie.isPrefix (String.toList key) trie
 
 
-{-| Given a suffix, finds any sub-trie containing the key-value pairs where the
-original keys begin with that suffix. The keys in the sub-trie will only consist
-of the remaining portion of the key after the suffix.
+{-| Given a prefix, finds any sub-trie containing the key-value pairs where the
+original keys begin with that prefix. The keys in the sub-trie will only consist
+of the remaining portion of the key after the prefix.
 -}
 subtrie : String -> Trie a -> Maybe (Trie a)
 subtrie key trie =
@@ -288,8 +288,8 @@ subtrie key trie =
 
 {-| `Match` describes how a flexible search over a trie will proceed.
 
-  - `Break` - do not explore any more below the current suffix.
-  - `Wildcard` - continue with all possible next keys below the current suffix.
+  - `Break` - do not explore any more below the current prefix.
+  - `Wildcard` - continue with all possible next keys below the current prefix.
   - `ContinueIf` - continue with the next key provided it exactly matches the comparable specified.
   - `ContinueIfOneOf` - continue with the next key provided it matches one of the comparables specified.
 
@@ -349,8 +349,8 @@ match fn accum context trie =
 -- String specific Trie functions.
 
 
-{-| Given a suffix, finds all keys that begin with that suffix ignoring the case
-of characters in the suffix or in the trie.
+{-| Given a prefix, finds all keys that begin with that prefix ignoring the case
+of characters in the prefix or in the trie.
 -}
 expandIgnoreCase : String -> Trie a -> List ( String, a )
 expandIgnoreCase key trie =
