@@ -5,7 +5,7 @@ module StringTrie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , Match, match, expand, isPrefix, subtrie, break, wildcard, continueIf, continueIfOneOf
+    , Match, break, wildcard, continueIf, continueIfOneOf, match, expand, isPrefix, subtrie
     , expandIgnoreCase
     )
 
@@ -44,7 +44,7 @@ module StringTrie exposing
 
 # Trie specific search operations
 
-@docs Match, match, expand, isPrefix, subtrie, break, wildcard, continueIf, continueIfOneOf
+@docs Match, break, wildcard, continueIf, continueIfOneOf, match, expand, isPrefix, subtrie
 
 
 # String specific operations
