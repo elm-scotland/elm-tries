@@ -5,7 +5,7 @@ module Trie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , Match(..), match, expand, isPrefix, subtrie
+    , Match, match, expand, isPrefix, subtrie, break, wildcard, continueIf, continueIfOneOf
     )
 
 {-| A trie mapping unique strings to values.
@@ -43,7 +43,7 @@ module Trie exposing
 
 # Trie specific search operations.
 
-@docs Match, match, expand, isPrefix, subtrie
+@docs Match, match, expand, isPrefix, subtrie, break, wildcard, continueIf, continueIfOneOf
 
 -}
 
@@ -496,6 +496,36 @@ type Match comparable
     | Wildcard
     | ContinueIf comparable
     | ContinueIfOneOf (List comparable)
+
+
+{-| A match step that breaks on the current node.
+-}
+break : Match comparable
+break =
+    Break
+
+
+{-| A match step follows all nodes after the current node.
+-}
+wildcard : Match comparable
+wildcard =
+    Wildcard
+
+
+{-| A match step that follows only one node that exactly matches the next
+comparable in the key.
+-}
+continueIf : comparable -> Match comparable
+continueIf =
+    ContinueIf
+
+
+{-| A match step that follows one or more nodes that exactly match the specified
+next comparables in the key.
+-}
+continueIfOneOf : List comparable -> Match comparable
+continueIfOneOf =
+    ContinueIfOneOf
 
 
 {-| Performs a flexible matching fold over a trie from the lowest to the highest

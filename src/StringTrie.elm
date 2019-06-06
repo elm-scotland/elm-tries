@@ -5,7 +5,7 @@ module StringTrie exposing
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
-    , Match, match, expand, isPrefix, subtrie
+    , Match, match, expand, isPrefix, subtrie, break, wildcard, continueIf, continueIfOneOf
     , expandIgnoreCase
     )
 
@@ -44,7 +44,7 @@ module StringTrie exposing
 
 # Trie specific search operations
 
-@docs Match, match, expand, isPrefix, subtrie
+@docs Match, match, expand, isPrefix, subtrie, break, wildcard, continueIf, continueIfOneOf
 
 
 # String specific operations
@@ -305,6 +305,36 @@ type alias Match comparable =
     Trie.Match comparable
 
 
+{-| A match step that breaks on the current node.
+-}
+break : Match comparable
+break =
+    Trie.break
+
+
+{-| A match step follows all nodes after the current node.
+-}
+wildcard : Match comparable
+wildcard =
+    Trie.wildcard
+
+
+{-| A match step that follows only one node that exactly matches the next
+comparable in the key.
+-}
+continueIf : comparable -> Match comparable
+continueIf =
+    Trie.continueIf
+
+
+{-| A match step that follows one or more nodes that exactly match the specified
+next comparables in the key.
+-}
+continueIfOneOf : List comparable -> Match comparable
+continueIfOneOf =
+    Trie.continueIfOneOf
+
+
 {-| Performs a flexible matching fold over a trie from the lowest to the highest
 key in order.
 
@@ -360,10 +390,10 @@ expandIgnoreCase key trie =
                 [] ->
                     case maybeValue of
                         Nothing ->
-                            ( accum, ( [], matchedKey ), Break )
+                            ( accum, ( [], matchedKey ), break )
 
                         Just val ->
-                            ( ( String.fromList (List.reverse matchedKey), val ) :: accum, ( [], matchedKey ), Break )
+                            ( ( String.fromList (List.reverse matchedKey), val ) :: accum, ( [], matchedKey ), break )
 
                 head :: nextRemainingKey ->
                     let
@@ -377,10 +407,10 @@ expandIgnoreCase key trie =
 
                         nextMatch =
                             if Char.toLower head == Char.toUpper head then
-                                ContinueIf head
+                                continueIf head
 
                             else
-                                ContinueIfOneOf [ Char.toLower head, Char.toUpper head ]
+                                continueIfOneOf [ Char.toLower head, Char.toUpper head ]
 
                         nextAccum =
                             case maybeValue of
