@@ -43,41 +43,63 @@ trie =
 suite : Test
 suite =
     describe "StringTrie tests"
-        [ DictIface.emptyIsEmpty "trie" trie
-        , DictIface.emptyContainsNoVal "string" "trie" string trie
-        , DictIface.emptyInsertStringContainsVal "string" "trie" string trie
-        , DictIface.nonEmptyIsNotEmpty "list string" "trie" (list string) trie
-        , DictIface.singletonContainsVal "string" "trie" string trie
-        , DictIface.singletonEmptyStringContainsVal "string" "trie" string trie
-        , DictIface.listOfNumsDoubledAllEven "list int" "trie" (list int) trie
-        , DictIface.listOfValsAllKeysMembers "list string" "trie" (list string) trie
-        , DictIface.listOfValsAllKeysMembers "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsContainsAllVals "list string" "trie" (list string) trie
-        , DictIface.listOfValsContainsAllVals "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsFoldlAllKeys "list string" "trie" (list string) trie
-        , DictIface.listOfValsFoldlAllKeys "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsFoldlIncreasing "list string" " dict" (list string) trie
-        , DictIface.listOfValsFoldlIncreasing "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsFoldrAllKeys "list string" "trie" (list string) trie
-        , DictIface.listOfValsFoldrAllKeys "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsFoldrDecreasing "list string" " dict" (list string) trie
-        , DictIface.listOfValsFoldrDecreasing "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsListsAllKeys "list string" "trie" (list string) trie
-        , DictIface.listOfValsListsAllKeys "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsListsAllValues "list string" "trie" (list string) trie
-        , DictIface.listOfValsListsAllValues "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsRemovedContainsNone "list string" "trie" (list string) trie
-        , DictIface.listOfValsRemovedContainsNone "list prefixString" "trie" (list prefixString) trie
-        , DictIface.listOfValsReportsSizeOk "list string" "trie" (list string) trie
-        , DictIface.listOfValsReportsSizeOk "list <| longString 10" "trie" (list <| longString 10) trie
-        , TrieIface.expandTest "list prefixString" "trie" (list prefixString) trie
-        , expandIgnoreCaseTest
+        [ -- DictIface.emptyIsEmpty "trie" trie
+          -- , DictIface.emptyContainsNoVal "string" "trie" string trie
+          -- , DictIface.emptyInsertStringContainsVal "string" "trie" string trie
+          -- , DictIface.nonEmptyIsNotEmpty "list string" "trie" (list string) trie
+          -- , DictIface.singletonContainsVal "string" "trie" string trie
+          -- , DictIface.singletonEmptyStringContainsVal "string" "trie" string trie
+          -- , DictIface.listOfNumsDoubledAllEven "list int" "trie" (list int) trie
+          -- , DictIface.listOfValsAllKeysMembers "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsAllKeysMembers "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsContainsAllVals "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsContainsAllVals "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsFoldlAllKeys "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsFoldlAllKeys "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsFoldlIncreasing "list string" " dict" (list string) trie
+          -- , DictIface.listOfValsFoldlIncreasing "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsFoldrAllKeys "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsFoldrAllKeys "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsFoldrDecreasing "list string" " dict" (list string) trie
+          -- , DictIface.listOfValsFoldrDecreasing "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsListsAllKeys "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsListsAllKeys "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsListsAllValues "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsListsAllValues "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsRemovedContainsNone "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsRemovedContainsNone "list prefixString" "trie" (list prefixString) trie
+          -- , DictIface.listOfValsReportsSizeOk "list string" "trie" (list string) trie
+          -- , DictIface.listOfValsReportsSizeOk "list <| longString 10" "trie" (list <| longString 10) trie
+          -- , TrieIface.expandTest "list prefixString" "trie" (list prefixString) trie
+          -- ,
+          expandIgnoreCaseTest
         ]
 
 
 expandIgnoreCaseTest : Test
 expandIgnoreCaseTest =
+    let
+        empty =
+            Trie.empty
+
+        example =
+            Trie.fromList [ ( "aD", True ), ( "abc", True ), ( "Abc", True ), ( "ABC", True ) ]
+    in
     describe "A StringTrie.Trie"
-        [ test "expands ignoring case to" <|
-            \_ -> Expect.fail "blah"
+        [ describe "when empty"
+            [ test "expands ignoring case to and empty list on empty key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "" empty
+                        |> Expect.equal []
+            , test "expands ignoring case to and empty list on non-empty key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "a" empty
+                        |> Expect.equal []
+            ]
+        , describe "with keys 'aD' 'abc' 'Abc' 'ABC'"
+            [ test "expands ignoring case to an empty list on empty key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "" example
+                        |> Expect.equal []
+            ]
         ]
