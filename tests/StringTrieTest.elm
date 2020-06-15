@@ -1,10 +1,11 @@
 module StringTrieTest exposing (suite)
 
 import DictIface exposing (IDict)
+import Expect exposing (Expectation)
 import Fuzz exposing (int, list, string)
 import Fuzzers exposing (longString, prefixString)
 import StringTrie as Trie exposing (Trie)
-import Test exposing (Test, describe)
+import Test exposing (Test, describe, test)
 import TrieIface exposing (ITrie)
 
 
@@ -70,4 +71,68 @@ suite =
         , DictIface.listOfValsReportsSizeOk "list string" "trie" (list string) trie
         , DictIface.listOfValsReportsSizeOk "list <| longString 10" "trie" (list <| longString 10) trie
         , TrieIface.expandTest "list prefixString" "trie" (list prefixString) trie
+        , expandIgnoreCaseTest
+        ]
+
+
+expandIgnoreCaseTest : Test
+expandIgnoreCaseTest =
+    let
+        empty =
+            Trie.empty
+
+        example =
+            Trie.fromList
+                [ ( "abc", True )
+                , ( "aD", True )
+                , ( "AbD", True )
+                , ( "Ab", True )
+                , ( "ABC", True )
+                ]
+    in
+    describe "A StringTrie.Trie"
+        [ describe "when empty"
+            [ test "expands ignoring case to and empty list on empty key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "" empty
+                        |> Expect.equal []
+            , test "expands ignoring case to and empty list on non-empty key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "a" empty
+                        |> Expect.equal []
+            ]
+        , describe "with keys 'aD' 'abc' 'Abc' 'ABC'"
+            [ test "expands to all keys on empty key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "" example
+                        |> Expect.equal
+                            [ ( "abc", True )
+                            , ( "aD", True )
+                            , ( "AbD", True )
+                            , ( "Ab", True )
+                            , ( "ABC", True )
+                            ]
+            , test "expands to all AB keys on 'ab' key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "ab" example
+                        |> Expect.equal
+                            [ ( "abc", True )
+                            , ( "AbD", True )
+                            , ( "Ab", True )
+                            , ( "ABC", True )
+                            ]
+            , test "expands to all AB keys on 'AB' key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "AB" example
+                        |> Expect.equal
+                            [ ( "abc", True )
+                            , ( "AbD", True )
+                            , ( "Ab", True )
+                            , ( "ABC", True )
+                            ]
+            , test "expands to empty list on key that is too long 'abcX'" <|
+                \_ ->
+                    Trie.expandIgnoreCase "abcX" example
+                        |> Expect.equal []
+            ]
         ]

@@ -2,7 +2,7 @@ module TrieTest exposing (suite)
 
 import DictIface exposing (IDict)
 import Fuzz exposing (int, list, string)
-import Fuzzers exposing (listChars, longString, stringToListChars, prefixString)
+import Fuzzers exposing (listChars, longString, prefixString, stringToListChars)
 import Test exposing (Test, describe)
 import Trie as Trie exposing (Trie)
 import TrieIface exposing (ITrie)
