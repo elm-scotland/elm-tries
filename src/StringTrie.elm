@@ -386,14 +386,33 @@ expandIgnoreCase : String -> Trie a -> List ( String, a )
 expandIgnoreCase key trie =
     match
         (\maybeChar maybeValue ( remainingKey, matchedKey ) accum ->
+            let
+                _ =
+                    Debug.log "step"
+                        { maybeChar = maybeChar
+                        , maybeValue = maybeValue
+                        , remainingKey = remainingKey
+                        , matchedKey = matchedKey
+                        , accum = accum
+                        }
+            in
             case remainingKey of
                 [] ->
                     case maybeValue of
                         Nothing ->
-                            ( accum, ( [], matchedKey ), break )
+                            ( accum, ( [], matchedKey ), wildcard )
 
                         Just val ->
-                            ( ( String.fromList (List.reverse matchedKey), val ) :: accum, ( [], matchedKey ), break )
+                            let
+                                foundKey =
+                                    case maybeChar of
+                                        Nothing ->
+                                            matchedKey
+
+                                        Just c ->
+                                            c :: matchedKey
+                            in
+                            ( ( String.fromList (List.reverse foundKey), val ) :: accum, ( [], matchedKey ), break )
 
                 head :: nextRemainingKey ->
                     let
