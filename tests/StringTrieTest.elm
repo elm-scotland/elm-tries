@@ -83,7 +83,13 @@ expandIgnoreCaseTest =
             Trie.empty
 
         example =
-            Trie.fromList [ ( "aD", True ), ( "abc", True ), ( "Abc", True ), ( "ABC", True ) ]
+            Trie.fromList
+                [ ( "abc", True )
+                , ( "aD", True )
+                , ( "AbD", True )
+                , ( "Ab", True )
+                , ( "ABC", True )
+                ]
     in
     describe "A StringTrie.Trie"
         [ describe "when empty"
@@ -97,9 +103,37 @@ expandIgnoreCaseTest =
                         |> Expect.equal []
             ]
         , describe "with keys 'aD' 'abc' 'Abc' 'ABC'"
-            [ test "expands ignoring case to an empty list on empty key" <|
+            [ test "expands to all keys on empty key" <|
                 \_ ->
                     Trie.expandIgnoreCase "" example
+                        |> Expect.equal
+                            [ ( "abc", True )
+                            , ( "aD", True )
+                            , ( "AbD", True )
+                            , ( "Ab", True )
+                            , ( "ABC", True )
+                            ]
+            , test "expands to all AB keys on 'ab' key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "ab" example
+                        |> Expect.equal
+                            [ ( "abc", True )
+                            , ( "AbD", True )
+                            , ( "Ab", True )
+                            , ( "ABC", True )
+                            ]
+            , test "expands to all AB keys on 'AB' key" <|
+                \_ ->
+                    Trie.expandIgnoreCase "AB" example
+                        |> Expect.equal
+                            [ ( "abc", True )
+                            , ( "AbD", True )
+                            , ( "Ab", True )
+                            , ( "ABC", True )
+                            ]
+            , test "expands to empty list on key that is too long 'abcX'" <|
+                \_ ->
+                    Trie.expandIgnoreCase "abcX" example
                         |> Expect.equal []
             ]
         ]

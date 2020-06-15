@@ -398,21 +398,21 @@ expandIgnoreCase key trie =
             in
             case remainingKey of
                 [] ->
+                    let
+                        foundKey =
+                            case maybeChar of
+                                Nothing ->
+                                    matchedKey
+
+                                Just c ->
+                                    c :: matchedKey
+                    in
                     case maybeValue of
                         Nothing ->
-                            ( accum, ( [], matchedKey ), wildcard )
+                            ( accum, ( [], foundKey ), wildcard )
 
                         Just val ->
-                            let
-                                foundKey =
-                                    case maybeChar of
-                                        Nothing ->
-                                            matchedKey
-
-                                        Just c ->
-                                            c :: matchedKey
-                            in
-                            ( ( String.fromList (List.reverse foundKey), val ) :: accum, ( [], matchedKey ), break )
+                            ( ( String.fromList (List.reverse foundKey), val ) :: accum, ( [], foundKey ), wildcard )
 
                 head :: nextRemainingKey ->
                     let
@@ -430,16 +430,8 @@ expandIgnoreCase key trie =
 
                             else
                                 continueIfOneOf [ Char.toLower head, Char.toUpper head ]
-
-                        nextAccum =
-                            case maybeValue of
-                                Nothing ->
-                                    accum
-
-                                Just val ->
-                                    ( String.fromList (List.reverse nextMatchedKey), val ) :: accum
                     in
-                    ( nextAccum, ( nextRemainingKey, nextMatchedKey ), nextMatch )
+                    ( accum, ( nextRemainingKey, nextMatchedKey ), nextMatch )
         )
         []
         ( String.toList key, [] )
