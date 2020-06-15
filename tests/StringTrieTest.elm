@@ -1,10 +1,11 @@
 module StringTrieTest exposing (suite)
 
 import DictIface exposing (IDict)
+import Expect exposing (Expectation)
 import Fuzz exposing (int, list, string)
 import Fuzzers exposing (longString, prefixString)
 import StringTrie as Trie exposing (Trie)
-import Test exposing (Test, describe)
+import Test exposing (Test, describe, test)
 import TrieIface exposing (ITrie)
 
 
@@ -70,4 +71,13 @@ suite =
         , DictIface.listOfValsReportsSizeOk "list string" "trie" (list string) trie
         , DictIface.listOfValsReportsSizeOk "list <| longString 10" "trie" (list <| longString 10) trie
         , TrieIface.expandTest "list prefixString" "trie" (list prefixString) trie
+        , expandIgnoreCaseTest
+        ]
+
+
+expandIgnoreCaseTest : Test
+expandIgnoreCaseTest =
+    describe "A StringTrie.Trie"
+        [ test "expands ignoring case to" <|
+            \_ -> Expect.fail "blah"
         ]
