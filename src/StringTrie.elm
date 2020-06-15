@@ -386,16 +386,6 @@ expandIgnoreCase : String -> Trie a -> List ( String, a )
 expandIgnoreCase key trie =
     match
         (\maybeChar maybeValue ( remainingKey, matchedKey ) accum ->
-            let
-                _ =
-                    Debug.log "step"
-                        { maybeChar = maybeChar
-                        , maybeValue = maybeValue
-                        , remainingKey = remainingKey
-                        , matchedKey = matchedKey
-                        , accum = accum
-                        }
-            in
             case remainingKey of
                 [] ->
                     let
