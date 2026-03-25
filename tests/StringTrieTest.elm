@@ -70,8 +70,63 @@ suite =
         , DictIface.listOfValsRemovedContainsNone "list prefixString" "trie" (list prefixString) trie
         , DictIface.listOfValsReportsSizeOk "list string" "trie" (list string) trie
         , DictIface.listOfValsReportsSizeOk "list <| longString 10" "trie" (list <| longString 10) trie
+        , DictIface.mapPreservesKeys "list string" "trie" (list string) trie
+        , DictIface.mapPreservesKeys "list prefixString" "trie" (list prefixString) trie
+        , DictIface.filterTrueKeepsAll "list string" "trie" (list string) trie
+        , DictIface.filterFalseRemovesAll "list string" "trie" (list string) trie
+        , DictIface.partitionIsExhaustive "list string" "trie" (list string) trie
+        , DictIface.unionWithEmptyIsIdentity "list string" "trie" (list string) trie
+        , DictIface.unionContainsBothKeys "list string" "trie" (list string) trie
+        , DictIface.intersectOnlyCommonKeys "list string" "trie" (list string) trie
+        , DictIface.diffRemovesSecondKeys "list string" "trie" (list string) trie
+        , DictIface.fromListToListRoundtrip "list string" "trie" (list string) trie
+        , DictIface.fromListToListRoundtrip "list prefixString" "trie" (list prefixString) trie
+        , DictIface.insertReplacesValue "string" "trie" string trie
+        , DictIface.removeNonExistentIsNoop "string" "trie" string trie
         , TrieIface.expandTest "list prefixString" "trie" (list prefixString) trie
+        , TrieIface.expandResultsHavePrefix "list prefixString" "trie" (list prefixString) String.startsWith trie
+        , TrieIface.expandEmptyPrefixReturnsAll "list prefixString" "trie" (list prefixString) "" trie
+        , TrieIface.subtrieEmptyKeyReturnsSelf "list prefixString" "trie" (list prefixString) "" trie
+        , TrieIface.subtrieOfInsertedKeyHasValue "list prefixString" "trie" (list prefixString) "" trie
+        , TrieIface.isPrefixOfInsertedKey "list prefixString" "trie" (list prefixString) trie
         , expandIgnoreCaseTest
+        , keyPrefixTests
+        ]
+
+
+keyPrefixTests : Test
+keyPrefixTests =
+    describe "Key prefix edge cases"
+        [ test "get with prefix of existing key returns Nothing" <|
+            \_ ->
+                Trie.singleton "ab" 1
+                    |> Trie.get "a"
+                    |> Expect.equal Nothing
+        , test "get with extension of existing key returns Nothing" <|
+            \_ ->
+                Trie.singleton "ab" 1
+                    |> Trie.get "abc"
+                    |> Expect.equal Nothing
+        , test "member returns False for prefix of existing key" <|
+            \_ ->
+                Trie.singleton "ab" 1
+                    |> Trie.member "a"
+                    |> Expect.equal False
+        , test "expandIgnoreCase with digits in prefix" <|
+            \_ ->
+                Trie.fromList [ ( "a1b", True ), ( "a2b", True ), ( "A1B", True ) ]
+                    |> Trie.expandIgnoreCase "a1"
+                    |> List.map Tuple.first
+                    |> List.sort
+                    |> Expect.equal [ "A1B", "a1b" ]
+        , test "isPrefix returns False for prefix of stored keys that is not itself stored" <|
+            \_ ->
+                -- Note: isPrefix currently checks if the prefix is itself a stored key,
+                -- not whether any keys begin with that prefix. This documents the current
+                -- behavior which may be a bug per the function's documentation.
+                Trie.fromList [ ( "ab", 1 ), ( "ac", 2 ) ]
+                    |> Trie.isPrefix "a"
+                    |> Expect.equal False
         ]
 
 

@@ -55,4 +55,15 @@ suite =
         , DictIface.listOfValsRemovedContainsNone "list string" " dict" (list string) dict
         , DictIface.listOfValsReportsSizeOk "list string" " dict" (list string) dict
         , DictIface.listOfValsReportsSizeOk "list <| longString 10" " dict" (list <| longString 10) dict
+        , DictIface.mapPreservesKeys "list string" " dict" (list string) dict
+        , DictIface.filterTrueKeepsAll "list string" " dict" (list string) dict
+        , DictIface.filterFalseRemovesAll "list string" " dict" (list string) dict
+        , DictIface.partitionIsExhaustive "list string" " dict" (list string) dict
+        , DictIface.unionWithEmptyIsIdentity "list string" " dict" (list string) dict
+        , DictIface.unionContainsBothKeys "list string" " dict" (list string) dict
+        , DictIface.intersectOnlyCommonKeys "list string" " dict" (list string) dict
+        , DictIface.diffRemovesSecondKeys "list string" " dict" (list string) dict
+        , DictIface.fromListToListRoundtrip "list string" " dict" (list string) dict
+        , DictIface.insertReplacesValue "string" " dict" string dict
+        , DictIface.removeNonExistentIsNoop "string" " dict" string dict
         ]

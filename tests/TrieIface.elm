@@ -1,6 +1,11 @@
 module TrieIface exposing
     ( ITrie
+    , expandEmptyPrefixReturnsAll
+    , expandResultsHavePrefix
     , expandTest
+    , isPrefixOfInsertedKey
+    , subtrieEmptyKeyReturnsSelf
+    , subtrieOfInsertedKeyHasValue
     )
 
 import DictIface exposing (IDict)
@@ -44,7 +49,7 @@ expandTest fuzzName implName fuzzer trieImpl =
         -- Every key expands to some results.
         expectKeyExpand val trie =
             List.isEmpty (trieImpl.expand val trie)
-                |> Expect.false "key does not expland to itself"
+                |> Expect.equal False
 
         -- Every key prefix expands to some results.
         -- expectAllKeyPrefixesExpand val trie =
@@ -83,4 +88,171 @@ expandTest fuzzName implName fuzzer trieImpl =
     in
     fuzz fuzzer
         ("Creates a " ++ implName ++ " with a list of vals, checking expansion of keys and prefixes of them (" ++ fuzzName ++ ").")
+        test
+
+
+expandResultsHavePrefix :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> (comparable -> comparable -> Bool)
+    -> ITrie comparable comparable dict b dictb result comparable1 context
+    -> Test
+expandResultsHavePrefix fuzzName implName fuzzer startsWith trieImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    let
+                        trie =
+                            List.foldl (\val t -> trieImpl.insert val val t) trieImpl.empty vals
+                    in
+                    Expect.all
+                        (List.map
+                            (\val t ->
+                                let
+                                    results =
+                                        trieImpl.expand val t
+                                in
+                                List.all (\( k, _ ) -> startsWith val k) results
+                                    |> Expect.equal True
+                            )
+                            vals
+                        )
+                        trie
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " and checks expand results have the correct prefix (" ++ fuzzName ++ ").")
+        test
+
+
+expandEmptyPrefixReturnsAll :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> comparable
+    -> ITrie comparable comparable dict b dictb result comparable1 context
+    -> Test
+expandEmptyPrefixReturnsAll fuzzName implName fuzzer emptyKey trieImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    let
+                        trie =
+                            List.foldl (\val t -> trieImpl.insert val val t) trieImpl.empty vals
+                    in
+                    trieImpl.expand emptyKey trie
+                        |> List.length
+                        |> Expect.equal (trieImpl.size trie)
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " and checks expand with empty key returns all entries (" ++ fuzzName ++ ").")
+        test
+
+
+subtrieEmptyKeyReturnsSelf :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> comparable
+    -> ITrie comparable comparable dict b dictb result comparable1 context
+    -> Test
+subtrieEmptyKeyReturnsSelf fuzzName implName fuzzer emptyKey trieImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    let
+                        trie =
+                            List.foldl (\val t -> trieImpl.insert val val t) trieImpl.empty vals
+                    in
+                    case trieImpl.subtrie emptyKey trie of
+                        Nothing ->
+                            Expect.fail "subtrie with empty key returned Nothing"
+
+                        Just sub ->
+                            trieImpl.size sub |> Expect.equal (trieImpl.size trie)
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " and checks subtrie with empty key returns the whole trie (" ++ fuzzName ++ ").")
+        test
+
+
+subtrieOfInsertedKeyHasValue :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> comparable
+    -> ITrie comparable comparable dict b dictb result comparable1 context
+    -> Test
+subtrieOfInsertedKeyHasValue fuzzName implName fuzzer emptyKey trieImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    let
+                        trie =
+                            List.foldl (\val t -> trieImpl.insert val val t) trieImpl.empty vals
+                    in
+                    Expect.all
+                        (List.map
+                            (\val t ->
+                                case trieImpl.subtrie val t of
+                                    Nothing ->
+                                        Expect.fail "subtrie returned Nothing for inserted key"
+
+                                    Just sub ->
+                                        trieImpl.get emptyKey sub |> Expect.equal (Just val)
+                            )
+                            vals
+                        )
+                        trie
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " and checks subtrie of each key has the value at empty key (" ++ fuzzName ++ ").")
+        test
+
+
+isPrefixOfInsertedKey :
+    String
+    -> String
+    -> Fuzzer (List comparable)
+    -> ITrie comparable comparable dict b dictb result comparable1 context
+    -> Test
+isPrefixOfInsertedKey fuzzName implName fuzzer trieImpl =
+    let
+        test possiblyEmptyVals =
+            case possiblyEmptyVals of
+                [] ->
+                    Expect.equal [] []
+
+                vals ->
+                    let
+                        trie =
+                            List.foldl (\val t -> trieImpl.insert val val t) trieImpl.empty vals
+                    in
+                    Expect.all
+                        (List.map
+                            (\val t ->
+                                trieImpl.isPrefix val t |> Expect.equal True
+                            )
+                            vals
+                        )
+                        trie
+    in
+    fuzz fuzzer
+        ("Creates a " ++ implName ++ " and checks isPrefix returns True for each inserted key (" ++ fuzzName ++ ").")
         test
