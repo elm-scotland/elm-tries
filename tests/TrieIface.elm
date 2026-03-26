@@ -13,11 +13,12 @@ import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
 import Set exposing (Set)
 import Test exposing (Test, fuzz)
-import Trie as Trie exposing (Match, Trie)
+import Trie exposing (Match, Trie)
 
 
 type alias ITrie comparable v dict b dictb result comparable1 context =
-    IDict comparable
+    IDict
+        comparable
         v
         dict
         b

@@ -6,7 +6,8 @@
     "version": "1.0.1",
     "exposed-modules": [
         "Trie",
-        "StringTrie"
+        "StringTrie",
+        "SuffixTrie"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {

@@ -1,4 +1,4 @@
-module Fuzzers exposing (listChars, longString, stringToListChars, prefixString)
+module Fuzzers exposing (listChars, longString, prefixString, stringToListChars)
 
 import Fuzz exposing (Fuzzer, int, list, string)
 

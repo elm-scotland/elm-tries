@@ -5,7 +5,7 @@ import Expect exposing (Expectation)
 import Fuzz exposing (int, list, string)
 import Fuzzers exposing (listChars, longString, prefixString, stringToListChars)
 import Test exposing (Test, describe, test)
-import Trie as Trie exposing (Trie)
+import Trie exposing (Trie)
 import TrieIface exposing (ITrie)
 
 
